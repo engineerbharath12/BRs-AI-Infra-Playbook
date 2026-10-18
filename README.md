@@ -46,8 +46,3 @@ BRs-AI-Infra-Playbook/
 | **02** | **[Breaking the Economic Barrier: Video Generation on Mid-Tier Blackwell Clusters](./GPU/02-video-generation-mid-tier-blackwell-clusters/README.md)** | Wan 2.2 / Hunyuan, G4 RTX 6000 Ada, PCIe Gen5 Switch P2P | **Medium** |
 | **03** | **[Accelerating Vision Transformers: Breaking the I/O Wall with NVIDIA Media Engines](./GPU/03-vision-transformers-nvidia-media-engines-deepcache/README.md)** | NVDEC Hardware Decoders, Zero-Copy Tensors, DeepCache ViT | **Medium** |
 | **04** | **[The Road to the Golden State: Optimizing 70B Model Training by Focusing on MFU](./GPU/04-70b-model-training-mfu-optimization/README.md)** | 512x H100 Superclusters, MFU 32% -> 54%, 3D Parallelism Overlap | **Medium** |
-
----
-
-## 🎨 Diagram & Asset Standards
-All diagrams in this playbook are stored directly in their respective article folders as clean raster PNGs, allowing seamless rendering across GitHub and one-click copy/paste into Google Docs and publishing platforms.
