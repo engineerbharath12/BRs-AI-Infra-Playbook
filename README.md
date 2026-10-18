@@ -13,18 +13,18 @@ Every article in this series is grounded in empirical customer deployments and p
 
 ```text
 BRs-AI-Infra-Playbook/
-├── TPU/                                                    # Cloud TPU Track
-│   ├── README.md                                          # TPU Series Index & Summaries
-│   ├── 01-pathways-elastic-training/                      # Article 1: Multi-Slice Pathways Elasticity
-│   ├── 02-tpu-pallas-kernel-optimizations/                # Article 2: Custom TPU Kernels in Pallas
-│   ├── 03-whisper-tpu-part2-accuracy-latency-throughput/  # Article 3: Whisper on TPU (Part 2)
-│   └── 04-whisper-tpu-part1-deep-dive/                    # Article 4: Whisper on TPU (Part 1)
-└── GPU/                                                    # GPU Track
-    ├── README.md                                          # GPU Series Index & Summaries
-    ├── 01-diffusion-caching-and-video-quality/            # Article 1: Diffusion Denoising Caching & VBench
-    ├── 02-video-generation-mid-tier-blackwell-clusters/   # Article 2: Video Gen on Mid-Tier Blackwell
-    ├── 03-vision-transformers-nvidia-media-engines-deepcache/ # Article 3: NVDEC & DeepCache ViT
-    └── 04-70b-model-training-mfu-optimization/            # Article 4: 70B Training MFU & Goodput
+├── TPU/                                             # Cloud TPU Track
+│   ├── README.md
+│   ├── 01-pathways-elastic-training/
+│   ├── 02-tpu-pallas-kernel-optimizations/
+│   ├── 03-whisper-tpu-part2-accuracy-latency-throughput/
+│   └── 04-whisper-tpu-part1-deep-dive/
+└── GPU/                                             # NVIDIA GPU Track
+    ├── README.md
+    ├── 01-diffusion-caching-and-video-quality/
+    ├── 02-video-generation-mid-tier-blackwell-clusters/
+    ├── 03-vision-transformers-nvidia-media-engines-deepcache/
+    └── 04-70b-model-training-mfu-optimization/
 ```
 
 ---

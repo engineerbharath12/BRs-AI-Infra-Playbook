@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="{{ site.lang | default: "en-US" }}">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {% seo %}
+    <link rel="stylesheet" href="{{ "/assets/css/style.css?v=" | append: site.github.build_revision | relative_url }}">
+  </head>
+  <body>
+    <div class="container-lg px-3 my-5 markdown-body">
+      {% if page.url != "/" and page.url != "/index.html" and page.url != "/BRs-AI-Infra-Playbook/" and page.url != "/BRs-AI-Infra-Playbook/index.html" %}
+      <p style="margin-bottom: 1.5rem; font-size: 0.9rem;">
+        <a href="{{ site.github.url }}/" style="text-decoration: none; font-weight: 600;">← Back to AI Infrastructure Playbook</a>
+      </p>
+      {% endif %}
+      {{ content }}
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>
+    <script>anchors.add();</script>
+  </body>
+</html>
