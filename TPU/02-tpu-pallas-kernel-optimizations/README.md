@@ -1,6 +1,5 @@
 # Unlocking Kernel-Level Optimizations on TPUs using Pallas: A Getting Started Guide
 
-> **Originally Published on Medium:** [https://medium.com/@engineerbharath/unlocking-kernel-level-optimizations-on-tpus-using-pallas-a-getting-started-guide-ae47a3ad5bb1](https://medium.com/@engineerbharath/unlocking-kernel-level-optimizations-on-tpus-using-pallas-a-getting-started-guide-ae47a3ad5bb1)  
 > **Author:** [Bharath Rathinam](https://github.com/engineerbharath12) Â· **Published:** Thu, 28 May 2026 12:23:51 GMT  
 > **Track:** TPU Supercomputing & Systems Architecture
 
@@ -250,5 +249,4 @@ Pallas allows you to stop fighting the compiler and start speaking the hardwareâ
 ---
 
 ### Links & References
-* **Original Medium Post:** [Unlocking Kernel-Level Optimizations on TPUs using Pallas: A Getting Started Guide](https://medium.com/@engineerbharath/unlocking-kernel-level-optimizations-on-tpus-using-pallas-a-getting-started-guide-ae47a3ad5bb1)
 * **Part of:** [Bharath's AI Infrastructure Playbook (BRs-AI-Infra-Playbook)](../../README.md)

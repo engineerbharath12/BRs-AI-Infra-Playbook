@@ -1,6 +1,5 @@
 # Beyond the Hardware: A Technical Guide to Diffusion Caching Methods and Video Quality Determination
 
-> **Originally Published on Medium:** [https://medium.com/@engineerbharath/beyond-the-hardware-taming-diffusion-math-with-context-aware-caching-7fc899feeb6d](https://medium.com/@engineerbharath/beyond-the-hardware-taming-diffusion-math-with-context-aware-caching-7fc899feeb6d)  
 > **Author:** [Bharath Rathinam](https://github.com/engineerbharath12) · **Published:** Sat, 04 Apr 2026 13:17:11 GMT  
 > **Track:** GPU Supercomputing & Systems Architecture
 
@@ -109,5 +108,4 @@ The implementation of caching is becoming a standard practice for running high-f
 ---
 
 ### Links & References
-* **Original Medium Post:** [Beyond the Hardware: A Technical Guide to Diffusion Caching Methods and Video Quality Determination](https://medium.com/@engineerbharath/beyond-the-hardware-taming-diffusion-math-with-context-aware-caching-7fc899feeb6d)
 * **Part of:** [Bharath's AI Infrastructure Playbook (BRs-AI-Infra-Playbook)](../../README.md)

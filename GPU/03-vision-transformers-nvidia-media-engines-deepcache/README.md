@@ -1,6 +1,5 @@
 # Accelerating Vision Transformers: Breaking the I/O Wall with NVIDIA Media Engines & DeepCache Architecture
 
-> **Originally Published on Medium:** [https://medium.com/@engineerbharath/accelerating-vision-transformers-breaking-the-i-o-wall-with-nvidia-media-engines-deepcache-24f58efea560](https://medium.com/@engineerbharath/accelerating-vision-transformers-breaking-the-i-o-wall-with-nvidia-media-engines-deepcache-24f58efea560)  
 > **Author:** [Bharath Rathinam](https://github.com/engineerbharath12) · **Published:** Sat, 21 Feb 2026 05:16:40 GMT  
 > **Track:** GPU Supercomputing & Systems Architecture
 
@@ -126,5 +125,4 @@ For the next generation of visual AI, the focus must shift: Look beyond the **TF
 ---
 
 ### Links & References
-* **Original Medium Post:** [Accelerating Vision Transformers: Breaking the I/O Wall with NVIDIA Media Engines & DeepCache…](https://medium.com/@engineerbharath/accelerating-vision-transformers-breaking-the-i-o-wall-with-nvidia-media-engines-deepcache-24f58efea560)
 * **Part of:** [Bharath's AI Infrastructure Playbook (BRs-AI-Infra-Playbook)](../../README.md)

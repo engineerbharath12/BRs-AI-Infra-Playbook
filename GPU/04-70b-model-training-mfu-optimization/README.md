@@ -1,6 +1,5 @@
 # The Road to the Golden State: How We Optimized 70B Model Training by Focusing on MFU to Save Millions
 
-> **Originally Published on Medium:** [https://medium.com/@engineerbharath/the-road-to-the-golden-state-how-we-optimized-70b-model-training-by-focusing-on-mfu-to-save-8daefbf7291e](https://medium.com/@engineerbharath/the-road-to-the-golden-state-how-we-optimized-70b-model-training-by-focusing-on-mfu-to-save-8daefbf7291e)  
 > **Author:** [Bharath Rathinam](https://github.com/engineerbharath12) · **Published:** Sat, 10 Jan 2026 03:02:04 GMT  
 > **Track:** GPU Supercomputing & Systems Architecture
 
@@ -133,5 +132,4 @@ These results prove that infrastructure architecture matters. For ML engineers, 
 ---
 
 ### Links & References
-* **Original Medium Post:** [The Road to the Golden State: How We Optimized 70B Model Training by Focusing on MFU to Save…](https://medium.com/@engineerbharath/the-road-to-the-golden-state-how-we-optimized-70b-model-training-by-focusing-on-mfu-to-save-8daefbf7291e)
 * **Part of:** [Bharath's AI Infrastructure Playbook (BRs-AI-Infra-Playbook)](../../README.md)

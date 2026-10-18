@@ -1,6 +1,5 @@
 # Unlocking Supersonic Speech Recognition: Part 2 — Balancing Accuracy, Latency, and Throughput on TPUs
 
-> **Originally Published on Medium:** [https://medium.com/@engineerbharath/unlocking-supersonic-speech-recognition-part-2-balancing-accuracy-latency-and-throughput-on-b2022441b752](https://medium.com/@engineerbharath/unlocking-supersonic-speech-recognition-part-2-balancing-accuracy-latency-and-throughput-on-b2022441b752)  
 > **Author:** [Bharath Rathinam](https://github.com/engineerbharath12) · **Published:** Fri, 26 Dec 2025 12:06:46 GMT  
 > **Track:** TPU Supercomputing & Systems Architecture
 
@@ -108,5 +107,4 @@ By adding these benchmarks to the repository, we’ve moved from a “proof of c
 ---
 
 ### Links & References
-* **Original Medium Post:** [Unlocking Supersonic Speech Recognition: Part 2 — Balancing Accuracy, Latency, and Throughput on…](https://medium.com/@engineerbharath/unlocking-supersonic-speech-recognition-part-2-balancing-accuracy-latency-and-throughput-on-b2022441b752)
 * **Part of:** [Bharath's AI Infrastructure Playbook (BRs-AI-Infra-Playbook)](../../README.md)

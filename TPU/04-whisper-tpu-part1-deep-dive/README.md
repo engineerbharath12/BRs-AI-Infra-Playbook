@@ -1,6 +1,5 @@
 # Unlocking Supersonic Speech Recognition: A Deep Dive into Optimizing Whisper on TPUs
 
-> **Originally Published on Medium:** [https://medium.com/@engineerbharath/unlocking-supersonic-speech-recognition-a-deep-dive-into-optimizing-whisper-on-tpus-6b8d734993d9](https://medium.com/@engineerbharath/unlocking-supersonic-speech-recognition-a-deep-dive-into-optimizing-whisper-on-tpus-6b8d734993d9)  
 > **Author:** [Bharath Rathinam](https://github.com/engineerbharath12) · **Published:** Wed, 10 Dec 2025 13:14:16 GMT  
 > **Track:** TPU Supercomputing & Systems Architecture
 
@@ -182,5 +181,4 @@ The Whisper-on-TPU project is the culmination of months of intense engineering e
 ---
 
 ### Links & References
-* **Original Medium Post:** [Unlocking Supersonic Speech Recognition: A Deep Dive into Optimizing Whisper on TPUs](https://medium.com/@engineerbharath/unlocking-supersonic-speech-recognition-a-deep-dive-into-optimizing-whisper-on-tpus-6b8d734993d9)
 * **Part of:** [Bharath's AI Infrastructure Playbook (BRs-AI-Infra-Playbook)](../../README.md)

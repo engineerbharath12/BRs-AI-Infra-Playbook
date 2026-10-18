@@ -7,12 +7,11 @@ Welcome to the **NVIDIA GPU Track**. Scaling generative inference and multi-bill
 
 ---
 
-## 📖 Published Articles
+## Published Articles
 
 ### 1. [Beyond the Hardware: A Technical Guide to Diffusion Caching Methods and Video Quality Determination](./01-diffusion-caching-and-video-quality/README.md)
 * **Topic:** Diffusion Acceleration, First-Block Caching (FBC), TeaCache, Context-Aware Token Pruning, VBench
 * **Hardware:** NVIDIA H100 / RTX 6000 Ada / Blackwell
-* **Status:** ✅ **Published on Medium**
 * **Summary:** Mathematical and architectural guide to taming the quadratic cost of diffusion transformer (DiT) denoising steps using dynamic caching algorithms without visual degradation.
 
 ---
@@ -20,7 +19,6 @@ Welcome to the **NVIDIA GPU Track**. Scaling generative inference and multi-bill
 ### 2. [Breaking the Economic Barrier: High-Efficiency Video Generation on Mid-Tier Blackwell Clusters](./02-video-generation-mid-tier-blackwell-clusters/README.md)
 * **Topic:** Video Diffusion (Wan 2.2 / Hunyuan), G4 VM Architecture, PCIe Gen5 Switch P2P, Ulysses Context Parallelism
 * **Hardware:** Google Cloud G4 instances (NVIDIA RTX 6000 Ada / Blackwell architecture)
-* **Status:** ✅ **Published on Medium**
 * **Summary:** How to serve massive 14B–19B video diffusion ensembles at a fraction of H100 cost by unlocking direct PCIe P2P collectives and avoiding CPU root complex round-trips.
 
 ---
@@ -28,7 +26,6 @@ Welcome to the **NVIDIA GPU Track**. Scaling generative inference and multi-bill
 ### 3. [Accelerating Vision Transformers: Breaking the I/O Wall with NVIDIA Media Engines & DeepCache Architecture](./03-vision-transformers-nvidia-media-engines-deepcache/README.md)
 * **Topic:** Hardware Video Decoders (NVDEC), Zero-Copy Tensor Streams, DeepCache, Spatial-Temporal Latent Sharding
 * **Hardware:** NVIDIA L4 / L40S / H100
-* **Status:** ✅ **Published on Medium**
 * **Summary:** Eliminating the hidden CPU-to-GPU data movement bottleneck in multi-modal vision pipelines by coupling NVDEC hardware decoding with zero-copy CUDA memory residency.
 
 ---
@@ -36,5 +33,4 @@ Welcome to the **NVIDIA GPU Track**. Scaling generative inference and multi-bill
 ### 4. [The Road to the Golden State: How We Optimized 70B Model Training by Focusing on MFU to Save Millions](./04-70b-model-training-mfu-optimization/README.md)
 * **Topic:** Model Flops Utilization (MFU), 70B Pre-Training, 3D Parallelism, Communication-Computation Overlap, Goodput
 * **Hardware:** 512x NVIDIA H100 / H200 Superclusters
-* **Status:** ✅ **Published on Medium**
 * **Summary:** How analyzing hardware execution timelines and optimizing distributed collective communications elevated instantaneous MFU from ~32% to >54%, shaving weeks off a multi-million-dollar training run.

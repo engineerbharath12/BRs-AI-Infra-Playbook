@@ -1,6 +1,5 @@
 # Breaking the Economic Barrier: High-Efficiency Video Generation on Mid-Tier Blackwell Clusters
 
-> **Originally Published on Medium:** [https://medium.com/@engineerbharath/breaking-the-economic-barrier-high-efficiency-video-generation-on-mid-tier-blackwell-clusters-aaf5d6ff2018](https://medium.com/@engineerbharath/breaking-the-economic-barrier-high-efficiency-video-generation-on-mid-tier-blackwell-clusters-aaf5d6ff2018)  
 > **Author:** [Bharath Rathinam](https://github.com/engineerbharath12) · **Published:** Sat, 28 Mar 2026 11:07:23 GMT  
 > **Track:** GPU Supercomputing & Systems Architecture
 
@@ -80,5 +79,4 @@ Beyond the Hardware: A Technical Guide to Diffusion Caching Methods and Video Qu
 ---
 
 ### Links & References
-* **Original Medium Post:** [Breaking the Economic Barrier: High-Efficiency Video Generation on Mid-Tier Blackwell Clusters](https://medium.com/@engineerbharath/breaking-the-economic-barrier-high-efficiency-video-generation-on-mid-tier-blackwell-clusters-aaf5d6ff2018)
 * **Part of:** [Bharath's AI Infrastructure Playbook (BRs-AI-Infra-Playbook)](../../README.md)
