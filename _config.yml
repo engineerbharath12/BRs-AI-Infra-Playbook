@@ -1,0 +1,14 @@
+title: Bharath's AI Infrastructure Playbook
+description: Frontier GPU & TPU Architecture Guides, Systems Optimizations, and Production Write-Ups
+theme: jekyll-theme-primer
+markdown: kramdown
+plugins:
+  - jekyll-readme-index
+  - jekyll-relative-links
+  - jekyll-titles-from-headings
+relative_links:
+  enabled: true
+  collections: true
+include:
+  - TPU
+  - GPU
