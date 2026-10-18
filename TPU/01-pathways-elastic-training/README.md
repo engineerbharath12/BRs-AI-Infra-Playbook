@@ -32,9 +32,9 @@ Cloud TPU and Pathways solve this fate-sharing bottleneck at both the network fa
 
 ### Figure 1: Coupled Multi-Controller Failure Cascade vs. Decoupled Single-Controller Elasticity in Google Cloud Pathways
 
-![Figure 1: Traditional Multi-Controller JAX (McJAX) vs. Google Cloud Pathways Single-Controller](./diagrams/mcjax_vs_pathways_architecture.png)
+![Figure 1: Traditional Multi-Controller JAX (McJAX) vs. Google Cloud Pathways Single-Controller](./mcjax_vs_pathways_architecture.png)
 
-*Figure 1: Why a single host hardware failure aborts 100% of a coupled McJAX job, versus in-process slice isolation in Google Cloud Pathways. ([View Full SVG](./diagrams/mcjax_vs_pathways_architecture.svg) · [Dendrite DSL](./diagrams/mcjax_vs_pathways_architecture.dendrite) · [Draw.io XML](./diagrams/mcjax_vs_pathways_architecture.drawio))*
+*Figure 1: Why a single host hardware failure aborts 100% of a coupled McJAX job, versus in-process slice isolation in Google Cloud Pathways.*
 
 ---
 
@@ -66,9 +66,9 @@ Pathways and MaxText provide two production elasticity modes controlled by a sin
 
 ### Figure 2: Decision Flow & Two-Tier Escalation for Pathways Elastic Training
 
-![Figure 2: Decision Flow & Two-Tier Escalation for Pathways Elastic Training](./diagrams/elastic_modes_decision_flow.png)
+![Figure 2: Decision Flow & Two-Tier Escalation for Pathways Elastic Training](./elastic_modes_decision_flow.png)
 
-*Figure 2: Elastic recovery modes and two-tier timeout integration between in-memory wait and Kueue cluster eviction. ([View Full SVG](./diagrams/elastic_modes_decision_flow.svg) · [Dendrite DSL](./diagrams/elastic_modes_decision_flow.dendrite) · [Draw.io XML](./diagrams/elastic_modes_decision_flow.drawio))*
+*Figure 2: Elastic recovery modes and two-tier timeout integration between in-memory wait and Kueue cluster eviction.*
 
 ---
 

@@ -1,31 +1,40 @@
 # Google Cloud TPU Architecture & Distributed Training Series
 
 > **Frontier Scale Pre-Training, Supercluster Resiliency, and Systems Optimizations on Cloud TPU**  
-> Part of [Bharath's AI Infrastructure Playbook (`BRs-AI-Infra-Playbook`)](../../README.md)
+> Part of [Bharath's AI Infrastructure Playbook (`BRs-AI-Infra-Playbook`)](../README.md)
 
-Welcome to the **Google Cloud TPU Track**. Cloud TPU superclusters (`v6e`, `v5p`, and next-gen `v7x Ironwood`) provide world-leading compute density and power efficiency for training foundation models. However, scaling synchronous training across multiple accelerator slices over optical Inter-Chip Interconnect (ICI) tori and Megascale Data Center Networks (DCN) requires deep systems engineering to survive routine cluster disruptions without sacrificing compute goodput.
+Welcome to the **Google Cloud TPU Track**. Cloud TPU superclusters (`v6e`, `v5p`, and next-gen `v7x Ironwood`) provide industry-leading compute density and power efficiency for training foundation models. However, scaling synchronous training across multiple accelerator slices over optical Inter-Chip Interconnect (ICI) tori and Megascale Data Center Networks (DCN) requires deep systems engineering to survive routine cluster disruptions without sacrificing compute goodput.
 
 ---
 
-## 📖 Published & Upcoming Articles
+## 📖 Published Articles
 
 ### 1. [How to Protect Multi-Slice LLM Pre-Training from Cluster Disruptions with Google Cloud Pathways and Cloud TPU](./01-pathways-elastic-training/README.md)
-* **Status:** ✅ **Published**
-* **Reading Time:** ~7 min read
+* **Topic:** Single-Controller Elasticity, Replica Resize, Pause/Resume, Kueue Two-Tier Eviction, GCS HNS/OCDBT
 * **Hardware:** Cloud TPU v6e (`v6e-256` multi-slice topology)
-* **Abstract:** In traditional Multi-Controller JAX (McJAX), a single host hardware fault, OS upgrade, or Spot preemption crashes 100% of the job across all slices. By adopting **Google Cloud Pathways with MaxText**, teams decouple the Python coordinator onto a CPU node pool (`restartCount = 0`), isolating the failure blast radius to a single slice. This guide details **Option 1 (Replica Resize)** for unbroken hero runs, **Option 2 (Pause and Resume)** for fixed-batch invariance, two-tier timeout escalation with **Kueue `waitForPodsReady`**, and **GCS HNS + OCDBT** storage optimizations.
-* **Diagrams:**
-  * [Figure 1: McJAX Failure Cascade vs. Pathways Single-Controller Elasticity](./01-pathways-elastic-training/diagrams/mcjax_vs_pathways_architecture.png)
-  * [Figure 2: Elastic Recovery Modes & Two-Tier Timeout Escalation](./01-pathways-elastic-training/diagrams/elastic_modes_decision_flow.png)
+* **Status:** ✅ **Published**
+* **Summary:** Decouples the Python coordinator onto a CPU node pool (`restartCount = 0`), isolating the failure blast radius to a single slice and cutting recovery overhead by skipping pod bootstrapping and XLA recompilation.
 
 ---
 
-### 2. Multi-Tier Checkpointing (MTC): Staging Checkpoints in Host RAM and Adjacent Peer Nodes Over DCN
-* **Status:** ⏳ *In Review (Part 2 of Pathways Elasticity)*
-* **Abstract:** Why write every checkpoint to remote object storage when an adjacent TPU host is microseconds away? This article explores how combining Pathways elasticity with Multi-Tier Checkpointing stages high-frequency checkpoints in local `/dev/shm` and replicates state to peer nodes over Megascale DCN, unlocking near-instantaneous rewind recovery.
+### 2. [Unlocking Kernel-Level Optimizations on TPUs using Pallas: A Getting Started Guide](./02-tpu-pallas-kernel-optimizations/README.md)
+* **Topic:** Custom XLA Kernel Engineering, Pallas DSL, Mosaic GPU/TPU, Memory Hierarchy (VMEM vs. HBM)
+* **Hardware:** Cloud TPU v4 / v5e / v6e
+* **Status:** ✅ **Published on Medium**
+* **Summary:** A practitioner's guide to writing custom low-level TPU kernels in Pallas—bypassing high-level compiler heuristics to achieve peak compute roofline on matrix-vector products and scientific lattice computations.
 
 ---
 
-### 3. Scaling PyGrain Data Loaders on Multi-Host Cloud TPU v6e Without Host RAM OOMs
-* **Status:** ⏳ *In Development*
-* **Abstract:** Root-cause analysis and architectural guide to solving host RAM exhaustion in distributed PyGrain multi-domain pipelines through ArrayRecord offloaded indexing, thread pool limits, and lazy dataset iterator sharding.
+### 3. [Unlocking Supersonic Speech Recognition: Part 2 — Balancing Accuracy, Latency, and Throughput on TPUs](./03-whisper-tpu-part2-accuracy-latency-throughput/README.md)
+* **Topic:** Large-Scale ASR Serving, High-Concurrency Batching, RTFx Optimization, Dynamic Latency Tuning
+* **Hardware:** Cloud TPU v5e / v6e
+* **Status:** ✅ **Published on Medium**
+* **Summary:** Deep dive into production trade-offs between word error rate (WER), real-time factor (RTFx), and P99 tail latency when serving OpenAI Whisper at scale on Cloud TPU.
+
+---
+
+### 4. [Unlocking Supersonic Speech Recognition: A Deep Dive into Optimizing Whisper on TPUs](./04-whisper-tpu-part1-deep-dive/README.md)
+* **Topic:** JAX Model Sharding, Speculative Decoding, Mel-Filterbank Vectorization, FlashAttention on TPU
+* **Hardware:** Cloud TPU v5e / v6e
+* **Status:** ✅ **Published on Medium**
+* **Summary:** How rewriting Whisper in native JAX and leveraging TPU Matrix Multiply Units (MXUs) broke past CPU/GPU latency bottlenecks to achieve over 1,500x Real-Time Factor (RTFx).

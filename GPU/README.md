@@ -1,22 +1,40 @@
 # NVIDIA GPU Supercomputing & Inference Systems Series
 
 > **High-Performance Multi-GPU Distributed Training, NCCL Tuning, and Low-Latency Serving**  
-> Part of [Bharath's AI Infrastructure Playbook (`BRs-AI-Infra-Playbook`)](../../README.md)
+> Part of [Bharath's AI Infrastructure Playbook (`BRs-AI-Infra-Playbook`)](../README.md)
 
-Welcome to the **NVIDIA GPU Track**. Scaling GPU workloads across Google Cloud's A3 Ultra (H200 SXM5), A3 Mega (H100), and next-generation G4 (RTX 6000 Ada / Blackwell) families requires precise orchestration across PCIe switches, NVLink networks, and remote storage file systems.
+Welcome to the **NVIDIA GPU Track**. Scaling generative inference and multi-billion parameter foundation model training across Google Cloud's A3 Ultra (H200 SXM5), A3 Mega (H100), and next-generation G4 (RTX 6000 Ada / Blackwell) families requires precise hardware-aware orchestration across PCIe switches, NVLink interconnects, and local NVMe storage.
 
 ---
 
-## 📖 Upcoming Articles & Guides
+## 📖 Published Articles
 
-### 1. Accelerating Multi-GPU Collective Bandwidth on Google Cloud G4 VMs via PCIe Switch P2P (`NCCL_P2P_LEVEL`)
-* **Status:** ⏳ *In Draft*
+### 1. [Beyond the Hardware: A Technical Guide to Diffusion Caching Methods and Video Quality Determination](./01-diffusion-caching-and-video-quality/README.md)
+* **Topic:** Diffusion Acceleration, First-Block Caching (FBC), TeaCache, Context-Aware Token Pruning, VBench
+* **Hardware:** NVIDIA H100 / RTX 6000 Ada / Blackwell
+* **Status:** ✅ **Published on Medium**
+* **Summary:** Mathematical and architectural guide to taming the quadratic cost of diffusion transformer (DiT) denoising steps using dynamic caching algorithms without visual degradation.
+
+---
+
+### 2. [Breaking the Economic Barrier: High-Efficiency Video Generation on Mid-Tier Blackwell Clusters](./02-video-generation-mid-tier-blackwell-clusters/README.md)
+* **Topic:** Video Diffusion (Wan 2.2 / Hunyuan), G4 VM Architecture, PCIe Gen5 Switch P2P, Ulysses Context Parallelism
 * **Hardware:** Google Cloud G4 instances (NVIDIA RTX 6000 Ada / Blackwell architecture)
-* **Abstract:** Exploring how enabling direct Peer-to-Peer traffic across PCIe switches by bypassing the CPU Root Complex doubles NCCL collective communication bandwidth on multi-GPU instances.
+* **Status:** ✅ **Published on Medium**
+* **Summary:** How to serve massive 14B–19B video diffusion ensembles at a fraction of H100 cost by unlocking direct PCIe P2P collectives and avoiding CPU root complex round-trips.
 
 ---
 
-### 2. Disaggregated Prefix Caching and LMCache Tier-3 Local NVMe Offload on GKE
-* **Status:** ⏳ *In Draft*
-* **Frameworks:** vLLM, GKE Inference Gateway, Endpoint Picker (EPP), LMCache
-* **Abstract:** A production benchmark guide on cutting Time-To-First-Token (TTFT) and improving throughput by pairing Kubernetes Gateway API prefix routing with multi-tier local NVMe KV-cache spillover.
+### 3. [Accelerating Vision Transformers: Breaking the I/O Wall with NVIDIA Media Engines & DeepCache Architecture](./03-vision-transformers-nvidia-media-engines-deepcache/README.md)
+* **Topic:** Hardware Video Decoders (NVDEC), Zero-Copy Tensor Streams, DeepCache, Spatial-Temporal Latent Sharding
+* **Hardware:** NVIDIA L4 / L40S / H100
+* **Status:** ✅ **Published on Medium**
+* **Summary:** Eliminating the hidden CPU-to-GPU data movement bottleneck in multi-modal vision pipelines by coupling NVDEC hardware decoding with zero-copy CUDA memory residency.
+
+---
+
+### 4. [The Road to the Golden State: How We Optimized 70B Model Training by Focusing on MFU to Save Millions](./04-70b-model-training-mfu-optimization/README.md)
+* **Topic:** Model Flops Utilization (MFU), 70B Pre-Training, 3D Parallelism, Communication-Computation Overlap, Goodput
+* **Hardware:** 512x NVIDIA H100 / H200 Superclusters
+* **Status:** ✅ **Published on Medium**
+* **Summary:** How analyzing hardware execution timelines and optimizing distributed collective communications elevated instantaneous MFU from ~32% to >54%, shaving weeks off a multi-million-dollar training run.
