@@ -1,0 +1,161 @@
+<svg id="diagram-svg" class="bento-svg" viewBox="0 0 1240 560" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#16a34a"/>
+          </marker>
+          <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+          </marker>
+          <marker id="arrow-slate" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+          </marker>
+          <filter id="card-shadow" x="-5%" y="-5%" width="110%" height="115%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.07"/>
+          </filter>
+        </defs>
+
+        <!-- Title Banner -->
+        <rect x="16" y="10" width="1208" height="38" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="32" y="34" font-size="14" font-weight="700" fill="#0f172a">Pathways Elastic Training Modes: Option 1 (Dynamic Resize) vs. Option 2 (Pause and Resume)</text>
+        <text x="1208" y="34" font-size="11" font-weight="600" fill="#475569" text-anchor="end">Workflow, Configuration &amp; Decision Guide</text>
+
+        <!-- COLUMN 1: Slice Interruption & Pathways Controller Detection -->
+        <rect x="16" y="60" width="260" height="484" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="32" y="84" font-size="11.5" font-weight="700" fill="#1e293b">SLICE EVENT &amp; CONTROLLER</text>
+        <text x="32" y="98" font-size="10" fill="#475569">Single-Controller Detection</text>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="32" y="120" width="228" height="104" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+          <text x="146" y="144" font-size="11.5" font-weight="700" fill="#0f172a" text-anchor="middle">1 of N TPU Slices Interrupted</text>
+          <text x="146" y="164" font-size="10" fill="#334155" text-anchor="middle">• Scheduled GKE OS / driver upgrade</text>
+          <text x="146" y="180" font-size="10" fill="#334155" text-anchor="middle">• DWS Flex / Spot capacity preemption</text>
+          <text x="146" y="196" font-size="10" fill="#334155" text-anchor="middle">• Unplanned host hardware replacement</text>
+          <text x="146" y="212" font-size="9.5" font-weight="600" fill="#475569" text-anchor="middle">Remaining N-1 slices stay 100% healthy</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="32" y="256" width="228" height="112" rx="8" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/>
+          <text x="146" y="280" font-size="11.5" font-weight="700" fill="#713f12" text-anchor="middle">Pathways Resource Manager</text>
+          <text x="146" y="300" font-size="10" fill="#854d0e" text-anchor="middle">IFRT Proxy catches RPC disconnect</text>
+          <text x="146" y="316" font-size="10" fill="#854d0e" text-anchor="middle">JAX Head Pod stays alive in memory</text>
+          <text x="146" y="334" font-size="10" font-weight="700" fill="#713f12" text-anchor="middle">Container restartCount = 0</text>
+          <text x="146" y="352" font-size="9.5" fill="#854d0e" text-anchor="middle">Routes to Option 1 or Option 2</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="32" y="400" width="228" height="120" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="146" y="422" font-size="11" font-weight="700" fill="#1e3a8a" text-anchor="middle">Checkpoint &amp; Restore Layer</text>
+          <text x="146" y="442" font-size="10" fill="#1e40af" text-anchor="middle">• Replica-0 deduplicated GCS writes</text>
+          <text x="146" y="458" font-size="10" fill="#1e40af" text-anchor="middle">• Optional: OCDBT 64 MB chunks + HNS</text>
+          <text x="146" y="474" font-size="10" fill="#1e40af" text-anchor="middle">• Optional: Slice 0 reads GCS once &amp;</text>
+          <text x="146" y="490" font-size="10" fill="#1e40af" text-anchor="middle">broadcasts over DCN (50% less egress)</text>
+          <text x="146" y="508" font-size="9.5" font-weight="600" fill="#1d4ed8" text-anchor="middle">• PyGrain exact cursor restore</text>
+        </g>
+
+        <!-- TOP LANE (COLS 2-3): OPTION 1: DYNAMIC RESIZE -->
+        <rect x="308" y="60" width="576" height="228" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+        <text x="326" y="84" font-size="12" font-weight="700" fill="#14532d">OPTION 1: DYNAMIC RESIZE (SCALE DOWN TO N-1 &amp; SCALE UP TO N)</text>
+        <text x="326" y="98" font-size="10" fill="#166534">Dynamically adjusts the number of active data-parallel slices so training never stops</text>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="326" y="114" width="260" height="68" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="456" y="135" font-size="11.5" font-weight="700" fill="#14532d" text-anchor="middle">1. Required Configuration</text>
+          <text x="456" y="151" font-size="10" font-family="monospace" fill="#166534" text-anchor="middle">--enable_Timestamp_rescaling=True</text>
+          <text x="456" y="166" font-size="10" font-family="monospace" fill="#166534" text-anchor="middle">--min-slices=1  --max-slices=N</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="606" y="114" width="260" height="68" rx="8" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="736" y="135" font-size="11.5" font-weight="700" fill="#14532d" text-anchor="middle">2. Scale Down Mesh (N → N-1 Slices)</text>
+          <text x="736" y="151" font-size="10" fill="#166534" text-anchor="middle">Drops interrupted slice from DCN ring;</text>
+          <text x="736" y="166" font-size="10" fill="#166534" text-anchor="middle">restores last step across N-1 healthy slices</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="326" y="198" width="260" height="72" rx="8" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="456" y="219" font-size="11.5" font-weight="700" fill="#14532d" text-anchor="middle">3. Uninterrupted Training on N-1</text>
+          <text x="456" y="235" font-size="10" fill="#166534" text-anchor="middle">Healthy slices continue generating tokens</text>
+          <text x="456" y="250" font-size="10" fill="#166534" text-anchor="middle">while GKE upgrades or replaces the node</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="606" y="198" width="260" height="72" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="736" y="219" font-size="11.5" font-weight="700" fill="#14532d" text-anchor="middle">4. Automatic Scale Up (N-1 → N)</text>
+          <text x="736" y="235" font-size="10" fill="#166534" text-anchor="middle">When repaired slice returns, Pathways</text>
+          <text x="736" y="250" font-size="10" fill="#166534" text-anchor="middle">expands the mesh back to full N slices</text>
+        </g>
+
+        <!-- BOTTOM LANE (COLS 2-3): OPTION 2: PAUSE AND RESUME -->
+        <rect x="308" y="308" width="576" height="236" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+        <text x="326" y="332" font-size="12" font-weight="700" fill="#1e3a8a">OPTION 2: PAUSE AND RESUME (FIXED SLICE COUNT)</text>
+        <text x="326" y="346" font-size="10" fill="#1d4ed8">Maintains a fixed N-slice topology; pauses in-memory during repair or swaps a standby slice</text>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="326" y="364" width="260" height="72" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="456" y="385" font-size="11.5" font-weight="700" fill="#1e3a8a" text-anchor="middle">1. Required Configuration</text>
+          <text x="456" y="403" font-size="10" font-family="monospace" fill="#1e40af" text-anchor="middle">num_slices=N   --max-restarts=100</text>
+          <text x="456" y="419" font-size="10" fill="#1e40af" text-anchor="middle">Keeps global batch size strictly constant</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="606" y="364" width="260" height="72" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+          <text x="736" y="385" font-size="11.5" font-weight="700" fill="#0c4a6e" text-anchor="middle">2. In-Process Pause (restartCount=0)</text>
+          <text x="736" y="403" font-size="10" fill="#0369a1" text-anchor="middle">Head pod pauses in RAM with warm XLA</text>
+          <text x="736" y="419" font-size="10" fill="#0369a1" text-anchor="middle">cache while worker slice is replaced</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="326" y="452" width="260" height="72" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+          <text x="456" y="473" font-size="11.5" font-weight="700" fill="#0c4a6e" text-anchor="middle">3. Standby Swap or Kueue Backfill</text>
+          <text x="456" y="491" font-size="10" fill="#0369a1" text-anchor="middle">Binds warm standby slice immediately OR</text>
+          <text x="456" y="507" font-size="10" fill="#0369a1" text-anchor="middle">lets Kueue backfill smaller jobs on N-1</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="606" y="452" width="260" height="72" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="736" y="473" font-size="11.5" font-weight="700" fill="#1e3a8a" text-anchor="middle">4. Checkpoint Rewind &amp; Resume</text>
+          <text x="736" y="491" font-size="10" fill="#1e40af" text-anchor="middle">Restores last checkpoint &amp; dataset state</text>
+          <text x="736" y="507" font-size="10" fill="#1e40af" text-anchor="middle">across all N slices without pod cold boot</text>
+        </g>
+
+        <!-- COLUMN 4: When to Use What & Business Outcomes -->
+        <rect x="916" y="60" width="308" height="484" rx="10" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/>
+        <text x="932" y="84" font-size="11.5" font-weight="700" fill="#4c1d95">WHEN TO USE &amp; BUSINESS VALUE</text>
+        <text x="932" y="98" font-size="10" fill="#5b21b6">Engineering &amp; Executive Decision Matrix</text>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="932" y="114" width="276" height="174" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+          <text x="1070" y="138" font-size="12" font-weight="700" fill="#14532d" text-anchor="middle">When to Use Option 1 (Resize)</text>
+          <text x="1070" y="160" font-size="10.5" fill="#166534" text-anchor="middle">• Single flagship ("hero") pre-training job</text>
+          <text x="1070" y="176" font-size="10.5" fill="#166534" text-anchor="middle">that owns the cluster reservation</text>
+          <text x="1070" y="196" font-size="10.5" fill="#166534" text-anchor="middle">• Rolling GKE node OS / driver upgrades</text>
+          <text x="1070" y="212" font-size="10.5" fill="#166534" text-anchor="middle">with zero cluster-wide job downtime</text>
+          <text x="1070" y="232" font-size="10.5" fill="#166534" text-anchor="middle">• Variable DWS Flex / Spot capacity</text>
+          <text x="1070" y="256" font-size="10.5" font-weight="700" fill="#14532d" text-anchor="middle">Outcome: Healthy slices never sit idle;</text>
+          <text x="1070" y="272" font-size="10.5" font-weight="700" fill="#14532d" text-anchor="middle">continuous token progress during repair</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="932" y="346" width="276" height="178" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+          <text x="1070" y="370" font-size="12" font-weight="700" fill="#1e3a8a" text-anchor="middle">When to Use Option 2 (Pause &amp; Resume)</text>
+          <text x="1070" y="392" font-size="10.5" fill="#1e40af" text-anchor="middle">• Pre-training recipes requiring a</text>
+          <text x="1070" y="408" font-size="10.5" fill="#1e40af" text-anchor="middle">strictly fixed global batch size every step</text>
+          <text x="1070" y="428" font-size="10.5" fill="#1e40af" text-anchor="middle">• Shared multi-tenant clusters where</text>
+          <text x="1070" y="444" font-size="10.5" fill="#1e40af" text-anchor="middle">Kueue backfills lower-priority jobs</text>
+          <text x="1070" y="464" font-size="10.5" fill="#1e40af" text-anchor="middle">• Clusters with warm standby slices</text>
+          <text x="1070" y="488" font-size="10.5" font-weight="700" fill="#1e3a8a" text-anchor="middle">Outcome: 53% faster recovery vs. McJAX</text>
+          <text x="1070" y="504" font-size="10.5" font-weight="700" fill="#1e3a8a" text-anchor="middle">&amp; zero statistical batch-size drift</text>
+        </g>
+
+        <!-- Connectors -->
+        <path d="M 146 224 L 146 250" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow-slate)"/>
+        <path d="M 146 400 L 146 374" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arrow-blue)"/>
+        <path d="M 260 296 L 288 296 L 288 148 L 320 148" fill="none" stroke="#16a34a" stroke-width="2.2" marker-end="url(#arrow-green)"/>
+        <path d="M 260 330 L 288 330 L 288 400 L 320 400" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
+        <path d="M 586 148 L 600 148" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)"/>
+        <path d="M 586 234 L 600 234" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)"/>
+        <path d="M 586 400 L 600 400" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+        <path d="M 586 488 L 600 488" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+        <path d="M 866 200 L 926 200" fill="none" stroke="#16a34a" stroke-width="2.2" marker-end="url(#arrow-green)"/>
+        <path d="M 866 435 L 926 435" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
+      </svg>

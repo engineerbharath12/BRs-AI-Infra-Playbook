@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" modified="2026-07-15T12:00:00.000Z" agent="Dendrite" version="24.0.0" type="device">
+  <diagram id="Dendrite_Diagram" name="Architecture">
+    <mxGraphModel dx="1422" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="3000" pageHeight="4000" math="0" shadow="1">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="cell_2" value="Figure 3: Decision Flow &amp; Two-Tier Escalation for Pathways Elastic Training" style="swimlane;fontStyle=1;horizontal=1;startSize=30;collapsible=1;rounded=1;fillColor=#f8fafd;strokeColor=#4285f4;strokeWidth=1.5;fontColor=#1E293B;fontSize=14;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1282" height="552" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_3" value="1. Slice Disruption Event" style="swimlane;fontStyle=1;horizontal=1;startSize=30;collapsible=1;rounded=1;fillColor=#fce8e6;strokeColor=#f6aea9;strokeWidth=1.5;fontColor=#202124;fontSize=14;shadow=1;" vertex="1" parent="cell_2">
+          <mxGeometry x="22" y="64" width="264" height="294" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_4" value="2. Option 1: Replica Resize" style="swimlane;fontStyle=1;horizontal=1;startSize=30;collapsible=1;rounded=1;fillColor=#e6f4ea;strokeColor=#81c995;strokeWidth=1.5;fontColor=#202124;fontSize=14;shadow=1;" vertex="1" parent="cell_2">
+          <mxGeometry x="326" y="64" width="280" height="294" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_5" value="3A. Option 2: Pause &amp; Resume" style="swimlane;fontStyle=1;horizontal=1;startSize=30;collapsible=1;rounded=1;fillColor=#e8f0fe;strokeColor=#8ab4f8;strokeWidth=1.5;fontColor=#202124;fontSize=14;shadow=1;" vertex="1" parent="cell_2">
+          <mxGeometry x="646" y="64" width="287" height="294" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_6" value="3B. Option 2: Kueue Eviction" style="swimlane;fontStyle=1;horizontal=1;startSize=30;collapsible=1;rounded=1;fillColor=#f3e8fd;strokeColor=#d7aefb;strokeWidth=1.5;fontColor=#202124;fontSize=14;shadow=1;" vertex="1" parent="cell_2">
+          <mxGeometry x="973" y="64" width="287" height="294" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_7" value="Fault Isolation Note" style="swimlane;fontStyle=1;horizontal=1;startSize=30;collapsible=1;rounded=1;fillColor=#fce8e6;strokeColor=#f6aea9;strokeWidth=1.5;fontColor=#202124;fontSize=14;shadow=1;" vertex="1" parent="cell_2">
+          <mxGeometry x="22" y="398" width="264" height="132" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_8" value="Hero Job Strategy Note" style="swimlane;fontStyle=1;horizontal=1;startSize=30;collapsible=1;rounded=1;fillColor=#e6f4ea;strokeColor=#81c995;strokeWidth=1.5;fontColor=#202124;fontSize=14;shadow=1;" vertex="1" parent="cell_2">
+          <mxGeometry x="326" y="398" width="280" height="132" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_9" value="Fixed Batch Strategy Note" style="swimlane;fontStyle=1;horizontal=1;startSize=30;collapsible=1;rounded=1;fillColor=#e8f0fe;strokeColor=#8ab4f8;strokeWidth=1.5;fontColor=#202124;fontSize=14;shadow=1;" vertex="1" parent="cell_2">
+          <mxGeometry x="646" y="398" width="287" height="132" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_10" value="Multi-Tenant Strategy Note" style="swimlane;fontStyle=1;horizontal=1;startSize=30;collapsible=1;rounded=1;fillColor=#f3e8fd;strokeColor=#d7aefb;strokeWidth=1.5;fontColor=#202124;fontSize=14;shadow=1;" vertex="1" parent="cell_2">
+          <mxGeometry x="973" y="398" width="287" height="132" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_11" value="&lt;b&gt;[GcpShuffle] Slice Lost (1 of N)&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;pathways-rm logs WorkerLost&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#fef2f2;strokeColor=#ea4335;strokeWidth=2;fontColor=#202124;fontSize=13;shadow=1;" vertex="1" parent="cell_3">
+          <mxGeometry x="22" y="66" width="220" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_12" value="&lt;b&gt;[GoogleCloud] pathways-head Survives&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;restartCount=0 in CPU memory&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;strokeWidth=2;fontColor=#202124;fontSize=13;shadow=1;" vertex="1" parent="cell_3">
+          <mxGeometry x="19" y="154" width="226" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_13" value="&lt;b&gt;[ShieldCheck] Inspect Elastic Mode&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Check elastic_min_slice_count&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8ab4f8;strokeWidth=1;fontColor=#1a73e8;fontSize=13;shadow=0;" vertex="1" parent="cell_3">
+          <mxGeometry x="22" y="246" width="220" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_14" value="&lt;b&gt;[VertexAI] In-Memory Mesh Shrink&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Mesh reshapes instantly (0s stall)&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;strokeWidth=2;fontColor=#202124;fontSize=13;shadow=1;" vertex="1" parent="cell_4">
+          <mxGeometry x="27" y="66" width="226" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_15" value="&lt;b&gt;[ShieldCheck] Surviving Slices Train&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Zero GCS I/O; forward progress&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dadce0;strokeWidth=1;fontColor=#202124;fontSize=13;shadow=1;" vertex="1" parent="cell_4">
+          <mxGeometry x="30" y="158" width="220" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_16" value="&lt;b&gt;[GcpShuffle] Auto-Expand on Rejoin&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Rescales back to N slices live&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8ab4f8;strokeWidth=1;fontColor=#1a73e8;fontSize=13;shadow=0;" vertex="1" parent="cell_4">
+          <mxGeometry x="30" y="246" width="220" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_17" value="&lt;b&gt;[GKE] In-Memory Pause&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Head waits in RAM; warm XLA cache&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;strokeWidth=2;fontColor=#202124;fontSize=13;shadow=1;" vertex="1" parent="cell_5">
+          <mxGeometry x="30.5" y="66" width="226" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_18" value="&lt;b&gt;[GKE] Slice Joins in Window&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Replacement boots within 3-5 min&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dadce0;strokeWidth=1;fontColor=#202124;fontSize=13;shadow=1;" vertex="1" parent="cell_5">
+          <mxGeometry x="33.5" y="158" width="220" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_19" value="&lt;b&gt;[ShieldCheck] Skip Pod &amp; Compile&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Fast checkpoint restore from GCS&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8ab4f8;strokeWidth=1;fontColor=#1a73e8;fontSize=13;shadow=0;" vertex="1" parent="cell_5">
+          <mxGeometry x="33.5" y="246" width="220" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_20" value="&lt;b&gt;[Apigee] Kueue Evicts Hero Job&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;waitForPodsReady triggers teardown&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#1a73e8;strokeWidth=2;fontColor=#202124;fontSize=13;shadow=1;" vertex="1" parent="cell_6">
+          <mxGeometry x="30.5" y="66" width="226" height="68" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_21" value="&lt;b&gt;[ShieldCheck] Backfill N-1 Slices&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Eval/fine-tune jobs run on idle TPUs&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dadce0;strokeWidth=1;fontColor=#202124;fontSize=13;shadow=1;" vertex="1" parent="cell_6">
+          <mxGeometry x="33.5" y="158" width="220" height="64" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_22" value="&lt;b&gt;[GcpStorageBucket] Persistent GCS XLA Cache&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Re-admits at #1 priority; skips compile&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#8ab4f8;strokeWidth=1;fontColor=#1a73e8;fontSize=13;shadow=0;" vertex="1" parent="cell_6">
+          <mxGeometry x="33.5" y="246" width="220" height="32" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_23" value="&lt;b&gt;[GcpShuffle] Blast Radius&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Only the faulted slice is paused; coordinator lives&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dadce0;strokeWidth=1;fontColor=#202124;fontSize=13;shadow=0;" vertex="1" parent="cell_7">
+          <mxGeometry x="19" y="52" width="226" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_24" value="&lt;b&gt;[VertexAI] Unbroken Tokens&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Best for single hero jobs where forward progress is paramount&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dadce0;strokeWidth=1;fontColor=#202124;fontSize=13;shadow=0;" vertex="1" parent="cell_8">
+          <mxGeometry x="27" y="52" width="226" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_25" value="&lt;b&gt;[GKE] Strict Invariance&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Keeps global batch size invariant; warm XLA in RAM&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dadce0;strokeWidth=1;fontColor=#202124;fontSize=13;shadow=0;" vertex="1" parent="cell_9">
+          <mxGeometry x="30.5" y="52" width="226" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="cell_26" value="&lt;b&gt;[Apigee] Quota Protection&lt;/b&gt;&lt;br&gt;&lt;font color=&#39;#64748B&#39; size=&#39;1&#39;&gt;Prevents starvation; backfills idle capacity in cluster&lt;/font&gt;" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#dadce0;strokeWidth=1;fontColor=#202124;fontSize=13;shadow=0;" vertex="1" parent="cell_10">
+          <mxGeometry x="30.5" y="52" width="226" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_27" value="Head Survives" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1a73e8;strokeWidth=2;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_11" target="cell_12">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_28" value="Check Policy" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1a73e8;strokeWidth=1.8;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_12" target="cell_13">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_29" value="elastic_min_slice_count=M" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#34a853;strokeWidth=2.2;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_13" target="cell_14">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_30" value="0s Stall Training" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#34a853;strokeWidth=2;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_14" target="cell_15">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_31" value="Slice Replaced" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#34a853;strokeWidth=1.8;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_15" target="cell_16">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_32" value="elastic_min_slice_count=-1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1a73e8;strokeWidth=2;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_13" target="cell_17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_33" value="Hardware Ready" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1a73e8;strokeWidth=2;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_17" target="cell_18">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_34" value="Restore Weights" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1a73e8;strokeWidth=1.8;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_18" target="cell_19">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_35" value="t &gt; timeout (Stockout)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#a142f4;strokeWidth=2.2;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_17" target="cell_20">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_36" value="Frees N-1 Quota" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#a142f4;strokeWidth=2;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_20" target="cell_21">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_37" value="Re-Admit (#1 Queue)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#a142f4;strokeWidth=1.8;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_21" target="cell_22">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_38" value="Detail" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#ea4335;strokeWidth=1.2;dashed=1;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_3" target="cell_7">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_39" value="Detail" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#34a853;strokeWidth=1.2;dashed=1;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_4" target="cell_8">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_40" value="Detail" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#1a73e8;strokeWidth=1.2;dashed=1;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_5" target="cell_9">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="edge_41" value="Detail" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#a142f4;strokeWidth=1.2;dashed=1;fontColor=#334155;fontSize=11;endArrow=block;endFill=1;" edge="1" parent="1" source="cell_6" target="cell_10">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

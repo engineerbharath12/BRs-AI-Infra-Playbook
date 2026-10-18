@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Pathways Elastic Training Modes: Option 1 (Dynamic Resize) vs. Option 2 (Pause and Resume)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body, html {
+      margin: 0; padding: 0; width: 100%; height: 620px;
+      font-family: 'Google Sans', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #f8fafc; overflow: hidden; display: flex; flex-direction: column;
+    }
+    .header-bar {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 16px; background: #ffffff; border-bottom: 1px solid #e2e8f0;
+      font-size: 13px; color: #334155; z-index: 20; box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      flex-shrink: 0;
+    }
+    .brand { font-weight: 600; display: flex; align-items: center; gap: 8px; color: #0f172a; }
+    .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: #e2e8f0; color: #475569; }
+    .badge.bento { background: #dcfce7; color: #166534; }
+    .view-toggle { display: flex; background: #f1f5f9; border-radius: 6px; padding: 2px; border: 1px solid #e2e8f0; }
+    .toggle-btn { padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; border: none; background: transparent; color: #64748b; transition: all 0.15s; }
+    .toggle-btn.active { background: #ffffff; color: #0f172a; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .actions { display: flex; gap: 6px; align-items: center; }
+    .btn {
+      background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px;
+      padding: 5px 10px; font-size: 11px; font-weight: 500; color: #334155;
+      cursor: pointer; transition: all 0.15s ease; display: inline-flex; align-items: center; gap: 4px; text-decoration: none;
+    }
+    .btn:hover { background: #f1f5f9; border-color: #94a3b8; color: #0f172a; }
+    .btn-primary { background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; font-weight: 600; }
+    .btn-primary:hover { background: #dbeafe; border-color: #93c5fd; color: #1e40af; }
+    .viewport { flex: 1; position: relative; width: 100%; height: calc(620px - 45px); overflow: hidden; background: radial-gradient(#cbd5e1 1px, transparent 1px) 0 0 / 20px 20px #f8fafc; }
+    #dendrite-canvas { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; cursor: grab; user-select: none; }
+    #dendrite-canvas:active { cursor: grabbing; }
+    #static-container { width: 100%; height: 100%; display: none; align-items: center; justify-content: center; overflow: auto; padding: 16px; background: #ffffff; }
+    svg.bento-svg { width: 98%; height: auto; max-height: 96%; filter: drop-shadow(0 4px 12px rgba(15, 23, 42, 0.05)); transition: transform 0.08s ease-out; }
+    .node-card { cursor: pointer; transition: filter 0.15s ease; }
+    .node-card:hover { filter: brightness(0.97) drop-shadow(0 4px 8px rgba(0,0,0,0.12)); }
+    .zoom-controls { position: absolute; bottom: 14px; right: 16px; display: flex; gap: 4px; background: #fff; border: 1px solid #cbd5e1; border-radius: 6px; padding: 3px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); z-index: 10; }
+    .zoom-btn { border: none; background: transparent; padding: 4px 8px; font-size: 12px; font-weight: 600; color: #334155; cursor: pointer; border-radius: 4px; }
+    .zoom-btn:hover { background: #f1f5f9; }
+    .toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: #0f172a; color: #fff; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 500; opacity: 0; pointer-events: none; transition: opacity 0.2s; z-index: 100; }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <div class="brand">
+      <span>Dendrite</span>
+      <span class="badge">v1.0.0</span>
+      <span class="badge bento">BENTO 4x2</span>
+      <span style="color:#64748b; font-weight:400; font-size:12px; margin-left:4px;">Diagram 2: Option 1 (Dynamic Resize) vs. Option 2 (Pause and Resume)</span>
+    </div>
+    <div class="view-toggle">
+      <button id="btn-interactive" class="toggle-btn active" onclick="setView('interactive')">Interactive</button>
+      <button id="btn-static" class="toggle-btn" onclick="setView('static')">Image View</button>
+    </div>
+    <div class="actions">
+      <button class="btn" style="background:#dcfce7; border-color:#22c55e; color:#14532d; font-weight:700;" onclick="copyHDPNG()">Copy HD PNG (Paste to GDoc)</button>
+      <a href="https://dendrite-758054785671.cr.gclb.goog/" target="_blank" class="btn btn-primary">Launch Dendrite Studio ↗</a>
+      <button class="btn" onclick="copyDSL()">Copy DSL</button>
+      <button class="btn" onclick="copySVG()">Copy SVG</button>
+      <button class="btn" onclick="exportPNG()">Export PNG</button>
+    </div>
+  </div>
+
+  <div class="viewport">
+    <div id="dendrite-canvas">
+      <svg id="diagram-svg" class="bento-svg" viewBox="0 0 1240 560" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#16a34a"/>
+          </marker>
+          <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+          </marker>
+          <marker id="arrow-slate" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+          </marker>
+          <filter id="card-shadow" x="-5%" y="-5%" width="110%" height="115%">
+            <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#0f172a" flood-opacity="0.07"/>
+          </filter>
+        </defs>
+
+        <!-- Title Banner -->
+        <rect x="16" y="10" width="1208" height="38" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+        <text x="32" y="34" font-size="14" font-weight="700" fill="#0f172a">Pathways Elastic Training Modes: Option 1 (Dynamic Resize) vs. Option 2 (Pause and Resume)</text>
+        <text x="1208" y="34" font-size="11" font-weight="600" fill="#475569" text-anchor="end">Workflow, Configuration &amp; Decision Guide</text>
+
+        <!-- COLUMN 1: Slice Interruption & Pathways Controller Detection -->
+        <rect x="16" y="60" width="260" height="484" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+        <text x="32" y="84" font-size="11.5" font-weight="700" fill="#1e293b">SLICE EVENT &amp; CONTROLLER</text>
+        <text x="32" y="98" font-size="10" fill="#475569">Single-Controller Detection</text>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="32" y="120" width="228" height="104" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+          <text x="146" y="144" font-size="11.5" font-weight="700" fill="#0f172a" text-anchor="middle">1 of N TPU Slices Interrupted</text>
+          <text x="146" y="164" font-size="10" fill="#334155" text-anchor="middle">• Scheduled GKE OS / driver upgrade</text>
+          <text x="146" y="180" font-size="10" fill="#334155" text-anchor="middle">• DWS Flex / Spot capacity preemption</text>
+          <text x="146" y="196" font-size="10" fill="#334155" text-anchor="middle">• Unplanned host hardware replacement</text>
+          <text x="146" y="212" font-size="9.5" font-weight="600" fill="#475569" text-anchor="middle">Remaining N-1 slices stay 100% healthy</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="32" y="256" width="228" height="112" rx="8" fill="#fef9c3" stroke="#ca8a04" stroke-width="2"/>
+          <text x="146" y="280" font-size="11.5" font-weight="700" fill="#713f12" text-anchor="middle">Pathways Resource Manager</text>
+          <text x="146" y="300" font-size="10" fill="#854d0e" text-anchor="middle">IFRT Proxy catches RPC disconnect</text>
+          <text x="146" y="316" font-size="10" fill="#854d0e" text-anchor="middle">JAX Head Pod stays alive in memory</text>
+          <text x="146" y="334" font-size="10" font-weight="700" fill="#713f12" text-anchor="middle">Container restartCount = 0</text>
+          <text x="146" y="352" font-size="9.5" fill="#854d0e" text-anchor="middle">Routes to Option 1 or Option 2</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="32" y="400" width="228" height="120" rx="8" fill="#eff6ff" stroke="#3b82f6" stroke-width="1.5"/>
+          <text x="146" y="422" font-size="11" font-weight="700" fill="#1e3a8a" text-anchor="middle">Checkpoint &amp; Restore Layer</text>
+          <text x="146" y="442" font-size="10" fill="#1e40af" text-anchor="middle">• Replica-0 deduplicated GCS writes</text>
+          <text x="146" y="458" font-size="10" fill="#1e40af" text-anchor="middle">• Optional: OCDBT 64 MB chunks + HNS</text>
+          <text x="146" y="474" font-size="10" fill="#1e40af" text-anchor="middle">• Optional: Slice 0 reads GCS once &amp;</text>
+          <text x="146" y="490" font-size="10" fill="#1e40af" text-anchor="middle">broadcasts over DCN (50% less egress)</text>
+          <text x="146" y="508" font-size="9.5" font-weight="600" fill="#1d4ed8" text-anchor="middle">• PyGrain exact cursor restore</text>
+        </g>
+
+        <!-- TOP LANE (COLS 2-3): OPTION 1: DYNAMIC RESIZE -->
+        <rect x="308" y="60" width="576" height="228" rx="10" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+        <text x="326" y="84" font-size="12" font-weight="700" fill="#14532d">OPTION 1: DYNAMIC RESIZE (SCALE DOWN TO N-1 &amp; SCALE UP TO N)</text>
+        <text x="326" y="98" font-size="10" fill="#166534">Dynamically adjusts the number of active data-parallel slices so training never stops</text>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="326" y="114" width="260" height="68" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="456" y="135" font-size="11.5" font-weight="700" fill="#14532d" text-anchor="middle">1. Required Configuration</text>
+          <text x="456" y="151" font-size="10" font-family="monospace" fill="#166534" text-anchor="middle">--enable_Timestamp_rescaling=True</text>
+          <text x="456" y="166" font-size="10" font-family="monospace" fill="#166534" text-anchor="middle">--min-slices=1  --max-slices=N</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="606" y="114" width="260" height="68" rx="8" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="736" y="135" font-size="11.5" font-weight="700" fill="#14532d" text-anchor="middle">2. Scale Down Mesh (N → N-1 Slices)</text>
+          <text x="736" y="151" font-size="10" fill="#166534" text-anchor="middle">Drops interrupted slice from DCN ring;</text>
+          <text x="736" y="166" font-size="10" fill="#166534" text-anchor="middle">restores last step across N-1 healthy slices</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="326" y="198" width="260" height="72" rx="8" fill="#bbf7d0" stroke="#16a34a" stroke-width="1.5"/>
+          <text x="456" y="219" font-size="11.5" font-weight="700" fill="#14532d" text-anchor="middle">3. Uninterrupted Training on N-1</text>
+          <text x="456" y="235" font-size="10" fill="#166534" text-anchor="middle">Healthy slices continue generating tokens</text>
+          <text x="456" y="250" font-size="10" fill="#166534" text-anchor="middle">while GKE upgrades or replaces the node</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="606" y="198" width="260" height="72" rx="8" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5"/>
+          <text x="736" y="219" font-size="11.5" font-weight="700" fill="#14532d" text-anchor="middle">4. Automatic Scale Up (N-1 → N)</text>
+          <text x="736" y="235" font-size="10" fill="#166534" text-anchor="middle">When repaired slice returns, Pathways</text>
+          <text x="736" y="250" font-size="10" fill="#166534" text-anchor="middle">expands the mesh back to full N slices</text>
+        </g>
+
+        <!-- BOTTOM LANE (COLS 2-3): OPTION 2: PAUSE AND RESUME -->
+        <rect x="308" y="308" width="576" height="236" rx="10" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+        <text x="326" y="332" font-size="12" font-weight="700" fill="#1e3a8a">OPTION 2: PAUSE AND RESUME (FIXED SLICE COUNT)</text>
+        <text x="326" y="346" font-size="10" fill="#1d4ed8">Maintains a fixed N-slice topology; pauses in-memory during repair or swaps a standby slice</text>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="326" y="364" width="260" height="72" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="456" y="385" font-size="11.5" font-weight="700" fill="#1e3a8a" text-anchor="middle">1. Required Configuration</text>
+          <text x="456" y="403" font-size="10" font-family="monospace" fill="#1e40af" text-anchor="middle">num_slices=N   --max-restarts=100</text>
+          <text x="456" y="419" font-size="10" fill="#1e40af" text-anchor="middle">Keeps global batch size strictly constant</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="606" y="364" width="260" height="72" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+          <text x="736" y="385" font-size="11.5" font-weight="700" fill="#0c4a6e" text-anchor="middle">2. In-Process Pause (restartCount=0)</text>
+          <text x="736" y="403" font-size="10" fill="#0369a1" text-anchor="middle">Head pod pauses in RAM with warm XLA</text>
+          <text x="736" y="419" font-size="10" fill="#0369a1" text-anchor="middle">cache while worker slice is replaced</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="326" y="452" width="260" height="72" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5"/>
+          <text x="456" y="473" font-size="11.5" font-weight="700" fill="#0c4a6e" text-anchor="middle">3. Standby Swap or Kueue Backfill</text>
+          <text x="456" y="491" font-size="10" fill="#0369a1" text-anchor="middle">Binds warm standby slice immediately OR</text>
+          <text x="456" y="507" font-size="10" fill="#0369a1" text-anchor="middle">lets Kueue backfill smaller jobs on N-1</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="606" y="452" width="260" height="72" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="1.5"/>
+          <text x="736" y="473" font-size="11.5" font-weight="700" fill="#1e3a8a" text-anchor="middle">4. Checkpoint Rewind &amp; Resume</text>
+          <text x="736" y="491" font-size="10" fill="#1e40af" text-anchor="middle">Restores last checkpoint &amp; dataset state</text>
+          <text x="736" y="507" font-size="10" fill="#1e40af" text-anchor="middle">across all N slices without pod cold boot</text>
+        </g>
+
+        <!-- COLUMN 4: When to Use What & Business Outcomes -->
+        <rect x="916" y="60" width="308" height="484" rx="10" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.5"/>
+        <text x="932" y="84" font-size="11.5" font-weight="700" fill="#4c1d95">WHEN TO USE &amp; BUSINESS VALUE</text>
+        <text x="932" y="98" font-size="10" fill="#5b21b6">Engineering &amp; Executive Decision Matrix</text>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="932" y="114" width="276" height="174" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
+          <text x="1070" y="138" font-size="12" font-weight="700" fill="#14532d" text-anchor="middle">When to Use Option 1 (Resize)</text>
+          <text x="1070" y="160" font-size="10.5" fill="#166534" text-anchor="middle">• Single flagship ("hero") pre-training job</text>
+          <text x="1070" y="176" font-size="10.5" fill="#166534" text-anchor="middle">that owns the cluster reservation</text>
+          <text x="1070" y="196" font-size="10.5" fill="#166534" text-anchor="middle">• Rolling GKE node OS / driver upgrades</text>
+          <text x="1070" y="212" font-size="10.5" fill="#166534" text-anchor="middle">with zero cluster-wide job downtime</text>
+          <text x="1070" y="232" font-size="10.5" fill="#166534" text-anchor="middle">• Variable DWS Flex / Spot capacity</text>
+          <text x="1070" y="256" font-size="10.5" font-weight="700" fill="#14532d" text-anchor="middle">Outcome: Healthy slices never sit idle;</text>
+          <text x="1070" y="272" font-size="10.5" font-weight="700" fill="#14532d" text-anchor="middle">continuous token progress during repair</text>
+        </g>
+
+        <g class="node-card" filter="url(#card-shadow)">
+          <rect x="932" y="346" width="276" height="178" rx="8" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/>
+          <text x="1070" y="370" font-size="12" font-weight="700" fill="#1e3a8a" text-anchor="middle">When to Use Option 2 (Pause &amp; Resume)</text>
+          <text x="1070" y="392" font-size="10.5" fill="#1e40af" text-anchor="middle">• Pre-training recipes requiring a</text>
+          <text x="1070" y="408" font-size="10.5" fill="#1e40af" text-anchor="middle">strictly fixed global batch size every step</text>
+          <text x="1070" y="428" font-size="10.5" fill="#1e40af" text-anchor="middle">• Shared multi-tenant clusters where</text>
+          <text x="1070" y="444" font-size="10.5" fill="#1e40af" text-anchor="middle">Kueue backfills lower-priority jobs</text>
+          <text x="1070" y="464" font-size="10.5" fill="#1e40af" text-anchor="middle">• Clusters with warm standby slices</text>
+          <text x="1070" y="488" font-size="10.5" font-weight="700" fill="#1e3a8a" text-anchor="middle">Outcome: 53% faster recovery vs. McJAX</text>
+          <text x="1070" y="504" font-size="10.5" font-weight="700" fill="#1e3a8a" text-anchor="middle">&amp; zero statistical batch-size drift</text>
+        </g>
+
+        <!-- Connectors -->
+        <path d="M 146 224 L 146 250" fill="none" stroke="#475569" stroke-width="2" marker-end="url(#arrow-slate)"/>
+        <path d="M 146 400 L 146 374" fill="none" stroke="#2563eb" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arrow-blue)"/>
+        <path d="M 260 296 L 288 296 L 288 148 L 320 148" fill="none" stroke="#16a34a" stroke-width="2.2" marker-end="url(#arrow-green)"/>
+        <path d="M 260 330 L 288 330 L 288 400 L 320 400" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
+        <path d="M 586 148 L 600 148" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)"/>
+        <path d="M 586 234 L 600 234" fill="none" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)"/>
+        <path d="M 586 400 L 600 400" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+        <path d="M 586 488 L 600 488" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+        <path d="M 866 200 L 926 200" fill="none" stroke="#16a34a" stroke-width="2.2" marker-end="url(#arrow-green)"/>
+        <path d="M 866 435 L 926 435" fill="none" stroke="#2563eb" stroke-width="2.2" marker-end="url(#arrow-blue)"/>
+      </svg>
+    </div>
+    <div id="static-container"></div>
+    <div class="zoom-controls" id="zoom-bar">
+      <button class="zoom-btn" onclick="zoom(1.15)">+</button>
+      <button class="zoom-btn" onclick="resetZoom()">100%</button>
+      <button class="zoom-btn" onclick="zoom(0.87)">−</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast">Copied to clipboard!</div>
+
+  <script id="dendrite-dsl" type="text/plain">diagram "Pathways Elastic Training Modes: Option 1 (Dynamic Resize) vs Option 2 (Pause and Resume)" {
+  description: "Engineering and business architecture comparing Option 1 (Dynamic Resize) and Option 2 (Pause and Resume) in Google Cloud Pathways and MaxText"
+  theme: gcp-architecture
+  renderOrder: nodes-first
+}</script>
+
+  <script>
+    let scale = 1, panX = 0, panY = 0, isDragging = false, startX = 0, startY = 0;
+    const svgEl = document.getElementById('diagram-svg');
+    const canvasEl = document.getElementById('dendrite-canvas');
+    const staticEl = document.getElementById('static-container');
+    staticEl.innerHTML = svgEl.outerHTML;
+    function updateTransform() { svgEl.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`; }
+    function zoom(f) { scale = Math.min(2.5, Math.max(0.5, scale * f)); updateTransform(); }
+    function resetZoom() { scale = 1; panX = 0; panY = 0; updateTransform(); }
+    canvasEl.addEventListener('mousedown', (e) => { isDragging = true; startX = e.clientX - panX; startY = e.clientY - panY; });
+    window.addEventListener('mousemove', (e) => { if (!isDragging) return; panX = e.clientX - startX; panY = e.clientY - startY; updateTransform(); });
+    window.addEventListener('mouseup', () => { isDragging = false; });
+    canvasEl.addEventListener('wheel', (e) => { e.preventDefault(); zoom(e.deltaY < 0 ? 1.08 : 0.92); }, { passive: false });
+    function setView(mode) {
+      document.getElementById('btn-interactive').classList.toggle('active', mode === 'interactive');
+      document.getElementById('btn-static').classList.toggle('active', mode === 'static');
+      canvasEl.style.display = mode === 'interactive' ? 'flex' : 'none';
+      document.getElementById('zoom-bar').style.display = mode === 'interactive' ? 'flex' : 'none';
+      staticEl.style.display = mode === 'static' ? 'flex' : 'none';
+    }
+    function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
+    function copyDSL() { navigator.clipboard.writeText(document.getElementById('dendrite-dsl').textContent); showToast('Dendrite DSL copied!'); }
+    function copySVG() { navigator.clipboard.writeText(svgEl.outerHTML); showToast('SVG copied!'); }
+    function copyHDPNG() {
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const img = new Image();
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      img.onload = function() {
+        const c = document.createElement('canvas'); c.width = 2480; c.height = 1120;
+        const ctx = c.getContext('2d'); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+        c.toBlob(async (pngBlob) => {
+          try {
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })]);
+            showToast('2x Retina HD PNG copied! Press Ctrl+V / Cmd+V in Google Doc');
+          } catch (err) {
+            const a = document.createElement('a'); a.download = 'pathways_elastic_options_resize_vs_pause_resume.png'; a.href = c.toDataURL('image/png'); a.click();
+            showToast('Downloaded 2x Retina HD PNG!');
+          }
+        }, 'image/png');
+      };
+      img.src = url;
+    }
+    function exportPNG() {
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const img = new Image();
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      img.onload = function() {
+        const c = document.createElement('canvas'); c.width = 2480; c.height = 1120;
+        const ctx = c.getContext('2d'); ctx.fillStyle = '#f8fafc'; ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+        const a = document.createElement('a'); a.download = 'pathways_elastic_options_resize_vs_pause_resume.png'; a.href = c.toDataURL('image/png'); a.click();
+        showToast('Exported 2x Retina PNG!');
+      };
+      img.src = url;
+    }
+  </script>
+</body>
+</html>

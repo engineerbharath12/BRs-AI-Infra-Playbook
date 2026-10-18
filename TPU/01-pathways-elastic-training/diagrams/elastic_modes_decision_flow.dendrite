@@ -1,0 +1,193 @@
+diagram "Pathways Elastic Training Modes: Option 1 (Dynamic Resize) vs Option 2 (Pause and Resume)" {
+  description: "Engineering and business architecture comparing Option 1 (Dynamic Resize) and Option 2 (Pause and Resume) in Google Cloud Pathways and MaxText"
+  theme: gcp-architecture
+  renderOrder: nodes-first
+
+  macro ProductCard(name, label, sublabel, icon, fill, stroke, textColor) {
+    node $name "$label" {
+      sublabel: "$sublabel"
+      shape: rectangle
+      width: 174
+      height: 58
+      icon: "$icon"
+      iconPosition: left-badge
+      fill: "$fill"
+      stroke: "$stroke"
+      strokeWidth: 1.5
+      textColor: "$textColor"
+      fontSize: 11
+      cornerRadius: 8
+      shadow: true
+    }
+  }
+
+  macro GatewayHubCard(name, label, sublabel, icon, fill, stroke, textColor) {
+    node $name "$label" {
+      sublabel: "$sublabel"
+      shape: rectangle
+      width: 204
+      height: 68
+      icon: "$icon"
+      iconPosition: left-badge
+      fill: "$fill"
+      stroke: "$stroke"
+      strokeWidth: 2
+      textColor: "$textColor"
+      fontSize: 12
+      cornerRadius: 8
+      shadow: true
+    }
+  }
+
+  layout {
+    type: grid
+    direction: LR
+    columns: 4
+    rows: 2
+    columnGap: 68
+    rowGap: 28
+  }
+
+  group trigger_gate "Slice Interruption & Controller Detection" {
+    style: container
+    fill: "#f8fafc"
+    stroke: "#cbd5e1"
+    textColor: "#1e293b"
+    gridColumn: 1
+    gridRow: 1
+    gridRowSpan: 2
+    padding: 16
+    layout {
+      type: stack
+      direction: TB
+      gap: 18
+    }
+
+    @GatewayHubCard(slice_event, "1 of N Slices Interrupted", "GKE Node Upgrade · Spot Preemption · Host Fault", "Server", "#f1f5f9", "#64748b", "#1e293b")
+    @GatewayHubCard(pw_detect, "Pathways Resource Manager", "IFRT Proxy Catches Error (restartCount=0)", "GKE", "#fef9c3", "#ca8a04", "#713f12")
+    @ProductCard(gcs_ckpt, "Orbax + GCS Checkpoint Store", "OCDBT 64 MB Chunks + Optional DCN Broadcast", "GcpStorageBucket", "#eff6ff", "#2563eb", "#1e3a8a")
+
+    slice_event -> pw_detect {
+      stroke: "#64748b"
+      strokeWidth: 2
+    }
+    gcs_ckpt -> pw_detect {
+      stroke: "#2563eb"
+      strokeWidth: 1.5
+      style: dashed
+    }
+  }
+
+  group option1_resize "Option 1: Dynamic Resize (Scale Down to N-1 & Scale Up to N)" {
+    style: container
+    fill: "#f0fdf4"
+    stroke: "#86efac"
+    textColor: "#14532d"
+    gridColumn: 2
+    gridRow: 1
+    gridColumnSpan: 2
+    padding: 16
+    layout {
+      type: grid
+      direction: LR
+      columns: 2
+      rows: 2
+      columnGap: 36
+      rowGap: 14
+    }
+
+    @ProductCard(opt1_cfg, "Config: --enable_Timestamp_rescaling", "--min-slices=1 --max-slices=N", "VertexAI", "#dcfce7", "#22c55e", "#14532d")
+    @ProductCard(opt1_shrink, "Step 1: Scale Down (N to N-1 Slices)", "Drops Unavailable Slice · Reshapes DCN Mesh", "GcpShuffle", "#bbf7d0", "#16a34a", "#14532d")
+    @ProductCard(opt1_continue, "Step 2: Continue Training Live", "Healthy Slices Progress Without Waiting", "Activity", "#dcfce7", "#22c55e", "#14532d")
+    @ProductCard(opt1_grow, "Step 3: Scale Up (N-1 to N Slices)", "Repaired Slice Rejoins Mesh Automatically", "Layers", "#bbf7d0", "#16a34a", "#14532d")
+
+    opt1_cfg -> opt1_shrink {
+      stroke: "#16a34a"
+      strokeWidth: 2
+    }
+    opt1_shrink -> opt1_continue {
+      stroke: "#16a34a"
+      strokeWidth: 2
+    }
+    opt1_continue -> opt1_grow {
+      stroke: "#16a34a"
+      strokeWidth: 2
+    }
+  }
+
+  group option2_pause "Option 2: Pause and Resume (Fixed N Slices)" {
+    style: container
+    fill: "#eff6ff"
+    stroke: "#93c5fd"
+    textColor: "#1e3a8a"
+    gridColumn: 2
+    gridRow: 2
+    gridColumnSpan: 2
+    padding: 16
+    layout {
+      type: grid
+      direction: LR
+      columns: 2
+      rows: 2
+      columnGap: 36
+      rowGap: 14
+    }
+
+    @ProductCard(opt2_cfg, "Config: num_slices=N · --max-restarts", "Strict Constant Global Batch Size", "VertexAI", "#dbeafe", "#2563eb", "#1e3a8a")
+    @ProductCard(opt2_pause, "Step 1: In-Process Pause (restartCount=0)", "Head Pod Waits in RAM or Swaps Standby Slice", "ShieldCheck", "#e0f2fe", "#0284c7", "#0c4a6e")
+    @ProductCard(opt2_backfill, "Step 2: Kueue Backfill During Wait", "Healthy Slices Run Lower-Priority Jobs", "GKE", "#dbeafe", "#2563eb", "#1e3a8a")
+    @ProductCard(opt2_resume, "Step 3: Checkpoint Rewind & Resume", "Restores Last Step & PyGrain Cursor on N Slices", "GcpStorageBucket", "#e0f2fe", "#0284c7", "#0c4a6e")
+
+    opt2_cfg -> opt2_pause {
+      stroke: "#2563eb"
+      strokeWidth: 2
+    }
+    opt2_pause -> opt2_backfill {
+      stroke: "#0284c7"
+      strokeWidth: 1.5
+      style: dashed
+    }
+    opt2_pause -> opt2_resume {
+      stroke: "#2563eb"
+      strokeWidth: 2
+    }
+  }
+
+  group when_to_use "When to Use & Business Outcome" {
+    style: container
+    fill: "#f5f3ff"
+    stroke: "#c4b5fd"
+    textColor: "#4c1d95"
+    gridColumn: 4
+    gridRow: 1
+    gridRowSpan: 2
+    padding: 16
+    layout {
+      type: stack
+      direction: TB
+      gap: 24
+    }
+
+    @GatewayHubCard(use_opt1, "Use Option 1 (Resize) For Hero Jobs", "Zero Idle Healthy Slices · Continuous Forward Progress", "CloudMonitoring", "#dcfce7", "#16a34a", "#14532d")
+    @GatewayHubCard(use_opt2, "Use Option 2 (Pause & Resume) For", "Strict Fixed Batch Size & Shared Kueue Clusters", "GoogleCloud", "#dbeafe", "#2563eb", "#1e3a8a")
+  }
+
+  pw_detect -> opt1_cfg {
+    label: "Option 1: Dynamic Resize"
+    stroke: "#16a34a"
+    strokeWidth: 2
+  }
+  pw_detect -> opt2_cfg {
+    label: "Option 2: Pause & Resume"
+    stroke: "#2563eb"
+    strokeWidth: 2
+  }
+  opt1_grow -> use_opt1 {
+    stroke: "#16a34a"
+    strokeWidth: 2
+  }
+  opt2_resume -> use_opt2 {
+    stroke: "#2563eb"
+    strokeWidth: 2
+  }
+}
