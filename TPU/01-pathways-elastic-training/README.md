@@ -2,7 +2,7 @@
 
 *An engineering and business guide to surviving hardware failures, software upgrades, and Spot preemptions with elastic multi-slice training.*
 
-When you scale foundation model pre-training across multiple accelerator slices for weeks, a single host failure, software upgrade, or Spot preemption in a traditional multi-controller setup crashes 100% of the job and leaves hundreds of healthy chips sitting idle. To solve this fate-sharing challenge, Google engineered **Google Cloud Pathways**: a decoupled, single-controller distributed execution runtime originally designed internally to train Google's own frontier models (including Gemini) across thousands of TPU chips, and now made directly available to Google Cloud AI and ML workloads. Following the same "Goodness of Google" open-innovation trajectory as Borg to Kubernetes and Cloud TPU, Pathways decouples the training coordinator from individual accelerator slices. When paired with MaxText and automated deployment suites like **Google Cloud Cluster Toolkit (`gcluster`)**, engineering teams can configure and launch resilient multi-slice pre-training jobs in minutes, eliminating full stages of recovery overhead and improving effective cluster goodput by over 40%. First, we examine why coupled training architectures fail at scale and how the unique design of Cloud TPU and Pathways isolates the blast radius of any slice interruption. Next, we provide a practical configuration guide covering Replica Resize, Pause and Resume, two-tier timeout escalation with Kueue, and Google Cloud Storage (GCS) optimizations before sharing how we helped a frontier model builder protect a flagship multi-slice hero training job during live hardware replacements.
+When you scale foundation model pre-training across multiple accelerator slices for weeks, a single host failure, software upgrade, or Spot preemption in a traditional multi-controller setup crashes 100% of the job and leaves hundreds of healthy chips sitting idle. To solve this fate-sharing challenge, Google engineered **Google Cloud Pathways**: a decoupled, single-controller distributed execution runtime originally designed internally to power Google's own internal AI and ML workloads across thousands of TPU chips, and now made directly available to Google Cloud customers. Following the same "Goodness of Google" open-innovation trajectory as Borg to Kubernetes and Cloud TPU, Pathways decouples the training coordinator from individual accelerator slices. When paired with MaxText and automated deployment suites like **Google Cloud Cluster Toolkit (`gcluster`)**, engineering teams can configure and launch resilient multi-slice pre-training jobs in minutes, eliminating full stages of recovery overhead and improving effective cluster goodput by over 40%. First, we examine why coupled training architectures fail at scale and how the unique design of Cloud TPU and Pathways isolates the blast radius of any slice interruption. Next, we provide a practical configuration guide covering Replica Resize, Pause and Resume, two-tier timeout escalation with Kueue, and Google Cloud Storage (GCS) optimizations before sharing how we helped a frontier model builder protect a flagship multi-slice hero training job during live hardware replacements.
 
 ---
 
@@ -72,30 +72,7 @@ Pathways and MaxText provide two production elasticity modes controlled by a sin
 
 ---
 
-### How In-Process Mesh Resize Works Under the Hood (5-Step Workflow)
-
-To understand how Option 1 (Replica Resize) scales between 3 slices (96 chips) and 2 slices (64 chips) without corrupting tensor state or requiring manual offline checkpoint conversion scripts, consider the following 5-step lifecycle:
-
-```text
-Before Failure: 3-Slice Mesh (96 Chips = 3 Data-Parallel Replicas x 32 FSDP Shards)
-┌──────────────────────────┐ ┌──────────────────────────┐ ┌──────────────────────────┐
-│  Slice 0 (32 TPU Chips)  │ │  Slice 1 (32 TPU Chips)  │ │  Slice 2 (32 TPU Chips)  │
-│  FSDP Shards [0 .. 31]   │ │  FSDP Shards [0 .. 31]   │ │  ❌ HOST HARDWARE FAULT  │
-└──────────────────────────┘ └──────────────────────────┘ └──────────────────────────┘
-              │                            │
-              ▼                            ▼
-After In-Memory Mesh Resize: 2-Slice Mesh (64 Chips = 2 Data-Parallel Replicas x 32 FSDP Shards)
-┌──────────────────────────┐ ┌──────────────────────────┐
-│  Slice 0 (32 TPU Chips)  │ │  Slice 1 (32 TPU Chips)  │   (Slice 2 repairs in background;
-│  FSDP Shards [0 .. 31]   │ │  FSDP Shards [0 .. 31]   │    0s wait on surviving slices)
-└──────────────────────────┘ └──────────────────────────┘
-```
-
-1. **In-Process Exception Catching (`restartCount = 0`):** When a TPU host on Slice 2 fails, the broken ICI ring raises a runtime exception. MaxText's `elastic_retry` loop catches the exception inside the running `pathways-head` Python process on the CPU node pool, keeping the coordinator alive.
-2. **Rebuilding the 2D Hybrid JAX Mesh:** MaxText queries `pathways-rm` via `jax.devices()`, which returns the 64 live chips across Slices 0 and 1. MaxText's device mesh has two levels: the intra-slice dimension (`ici_fsdp = 32`, which never changes because individual slices remain intact) and the inter-slice dimension (`dcn_data = 3` shrinking to `2`). MaxText instantiates a new logical `jax.sharding.Mesh` in Python memory with shape `(dcn_data=2, ici_fsdp=32)`.
-3. **Restoring Global Arrays onto the Resized Mesh:** Because Orbax saves checkpoints as logical global arrays rather than raw per-chip memory dumps, each 32-chip slice remains a data-parallel replica holding a full 32-way FSDP-sharded copy of the model. Orbax reads the last saved checkpoint (verified by `commit_success`), maps the tensors to the new 2-slice mesh, and restores weights into HBM in ~2 seconds with zero conversion scripts.
-4. **Proportional Batch Scaling and Data Loader Rewind:** To ensure per-device HBM memory never overflows, `per_device_batch_size` remains constant (for example, 1 sequence per chip). The global batch size automatically adjusts from 96 sequences/step to 64 sequences/step. PyGrain restores the exact dataset iterator cursor from the checkpoint, resuming training at the next step without repeating or skipping tokens.
-5. **Non-Disruptive Scale-Up at a Checkpoint Boundary:** When GKE finishes replacing Slice 2 in the background, Pathways signals that 3 slices are available again. Rather than interrupting an active step, MaxText waits until the next scheduled checkpoint commits, rebuilds the 3-slice mesh `(dcn_data=3, ici_fsdp=32)`, restores the checkpoint across all 96 chips, and resumes full throughput.
+* **Note on Dynamic Mesh Resharding and Batch Scaling:** Because Orbax stores checkpoints as logical global arrays across data-parallel slices (applicable from smaller 32-chip slices up to full 256-chip `v6e-256` slices), Pathways dynamically adjusts the inter-slice DCN mesh axis and restores the last verified checkpoint (`commit_success`) onto the surviving slices in seconds without offline conversion scripts. During a resize event, `per_device_batch_size` remains fixed to prevent HBM out-of-memory errors while the global batch size scales proportionally with the active slice count, making a flat Warmup-Stable-Decay (`lr_schedule_type='wsd'`) schedule ideal for maintaining steady convergence.
 
 ---
 
