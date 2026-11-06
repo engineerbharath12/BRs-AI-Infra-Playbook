@@ -12,3 +12,4 @@ relative_links:
 include:
   - TPU
   - GPU
+  - Accelerator-Diversity

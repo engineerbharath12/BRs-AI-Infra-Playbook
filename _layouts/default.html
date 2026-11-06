@@ -6,13 +6,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% seo %}
     <link rel="stylesheet" href="{{ "/assets/css/style.css?v=" | append: site.github.build_revision | relative_url }}">
+    <style>
+      .playbook-container {
+        max-width: 940px !important;
+        margin: 0 auto;
+        line-height: 1.72;
+        color: #1f2328;
+      }
+      .playbook-nav {
+        margin-bottom: 1.75rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #d8dee4;
+        font-size: 0.92rem;
+      }
+      .playbook-nav a {
+        text-decoration: none;
+        font-weight: 600;
+        color: #0969da;
+      }
+      .markdown-body h1 {
+        font-size: 2.05rem;
+        line-height: 1.28;
+        padding-bottom: 0.45rem;
+        border-bottom: 1px solid #d8dee4;
+        margin-bottom: 1.1rem;
+      }
+      .markdown-body h2 {
+        margin-top: 2.4rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.35rem;
+        border-bottom: 1px solid #eaeef2;
+      }
+      .markdown-body h3 {
+        margin-top: 1.75rem;
+        margin-bottom: 0.75rem;
+      }
+      .markdown-body p, .markdown-body li {
+        font-size: 1.02rem;
+        line-height: 1.72;
+      }
+      .markdown-body blockquote {
+        border-left: 4px solid #1a73e8;
+        background: #f6f9fe;
+        padding: 0.85rem 1.15rem;
+        border-radius: 0 8px 8px 0;
+        color: #24292f;
+        margin: 1.15rem 0 1.4rem;
+      }
+      .markdown-body img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 1.1rem auto 0.65rem;
+        border: 1px solid #d0d7de;
+        border-radius: 10px;
+        box-shadow: 0 2px 12px rgba(27, 31, 36, 0.06);
+      }
+      .markdown-body table {
+        display: table;
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.4rem 0;
+        font-size: 0.94rem;
+      }
+      .markdown-body table th {
+        background-color: #f6f8fa;
+        font-weight: 600;
+      }
+      .markdown-body pre {
+        border-radius: 8px;
+        border: 1px solid #e1e4e8;
+      }
+    </style>
   </head>
   <body>
-    <div class="container-lg px-3 my-5 markdown-body">
+    <div class="container-lg px-3 my-5 markdown-body playbook-container">
       {% if page.url != "/" and page.url != "/index.html" and page.url != "/BRs-AI-Infra-Playbook/" and page.url != "/BRs-AI-Infra-Playbook/index.html" %}
-      <p style="margin-bottom: 1.5rem; font-size: 0.9rem;">
-        <a href="{{ site.github.url }}/" style="text-decoration: none; font-weight: 600;">← Back to AI Infrastructure Playbook</a>
-      </p>
+      <div class="playbook-nav">
+        <a href="{{ site.github.url }}/">← Back to AI Infrastructure Playbook</a>
+      </div>
       {% endif %}
       {{ content }}
     </div>

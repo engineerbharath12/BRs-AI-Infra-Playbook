@@ -1,0 +1,130 @@
+---
+layout: null
+---
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8">
+<title>The evolution of PyTorch on Cloud TPUs: From JAX and PyTorch/XLA to TorchAX and native TorchTPU</title></head><body><article>
+<h1>The evolution of PyTorch on Cloud TPUs: From JAX and PyTorch/XLA to TorchAX and native TorchTPU</h1>
+<blockquote><strong>Author:</strong> <a href="https://github.com/engineerbharath12">Bharath Rathinam</a> · <strong>Track:</strong> <a href="../">Accelerator Diversity Series</a> (Part 1 of 2)</blockquote>
+<blockquote><strong>Companion Guide:</strong> <a href="../02-torchtpu-video-preprocessing-accelerator-diversity/">Part 2 — Bridging hardware NVDEC with split CPU-TPU decoding and a common codebase</a></blockquote>
+<p>While over 90% of open-weight foundation models and enterprise AI pipelines are authored in stateful, eager-first PyTorch, Google Cloud Tensor Processing Units (<strong>TPUs</strong>) were designed from the ground up around whole-graph compilation (<strong>XLA</strong>) and functional array programming (<strong>JAX</strong>). This guide traces the architectural evolution of running PyTorch workloads on Cloud TPUs—from early lazy-graph tracers and runtime JAX translation shims to the native <strong>TorchTPU</strong> (<code>torch_tpu</code>) backend—showing how TorchTPU delivers native PyTorch ergonomics without sacrificing compiler performance. First, we break down the PyTorch 2.x operator funnel (Python API → ATen → Core ATen primitives → StableHLO → XLA) and examine why earlier bridges struggled with dynamic shapes and operator coverage. Second, we analyze how TorchTPU unifies native PyTorch C++ dispatch with XLA whole-graph fusion and define the practical boundary between automatic Day-0 operator support and hardware-specific dependencies.</p>
+<hr>
+<h2>Section 1: Understanding the compiler bridge between PyTorch and TPU silicon</h2>
+<p>To understand why running PyTorch on a Cloud TPU required multiple architectural generations, you first need to compare how GPUs and TPUs execute math at the silicon level.</p>
+<h3>How GPU kernel dispatch differs from TPU whole-graph compilation</h3>
+<p>In standard PyTorch on a GPU, execution is <strong>eager and imperative</strong>. When a Python script executes a line such as <code>y = torch.matmul(a, b)</code>, Python delegates to PyTorch&#x27;s C++ engine, which pushes an individual CUDA kernel onto an asynchronous hardware stream. Each CUDA kernel reads its inputs from off-chip GPU High-Bandwidth Memory (<strong>HBM</strong> / VRAM), computes inside Streaming Multiprocessor (<strong>SM</strong>) registers and a small 128–228 KB Shared Memory (<strong>SRAM</strong>) tile, and writes its output back to HBM before the next Python line launches.</p>
+<p>A Google Cloud TPU (such as <strong>Cloud TPU v6e Trillium</strong> or <strong>TPU v7 Ironwood</strong>) operates on a fundamentally different hardware philosophy:</p>
+<ol>
+<li><strong>Massive systolic matrix units and multi-megabyte on-chip SRAM</strong>: Each TPU TensorCore pairs 256×256 Matrix Multiply Units (<strong>MXU</strong>) and a Vector Processing Unit (<strong>VPU</strong>) with <strong>16–32 MB of contiguous on-chip Vector Memory (VMEM SRAM)</strong>—roughly 100× larger on-chip SRAM per core than a single GPU SM.</li>
+<li><strong>Whole-graph XLA operator fusion</strong>: Rather than launching tiny kernels one operation at a time and round-tripping intermediate tensors to off-chip HBM, the <strong>Accelerated Linear Algebra (XLA)</strong> compiler ingests an entire computation graph ahead of execution. XLA solves a static 2D tiling and memory-allocation schedule, fusing chains of matrix multiplications, rescalings, and activations into a single hardware loop where intermediate tensors stay 100% resident inside on-chip VMEM.</li>
+</ol>
+<h3>Why JAX was originally the native language of Cloud TPUs</h3>
+<p>Because XLA requires a clean, side-effect-free computation graph to fuse operations across VMEM and the MXU, <strong>JAX</strong> emerged as the natural programming model for TPUs:</p>
+<ul>
+<li><strong>Purely functional and stateless</strong>: In JAX, functions take immutable arrays as inputs and return new arrays as outputs without mutating object attributes in place.</li>
+<li><strong>Deterministic JIT capture</strong>: When a developer decorates a function with <code>@jax.jit</code>, JAX traces the function once with abstract shapes, lowers the trace into <strong>StableHLO</strong> (Stable High-Level Operations, an open intermediate representation for ML compilers), and hands the StableHLO module to XLA.</li>
+<li><strong>Custom Pallas kernels</strong>: For irregular or long-context operations where compiler auto-fusion is insufficient (such as paged KV-cache attention or ragged Mixture-of-Experts routing), engineers write hardware-aware kernels in <strong>Pallas</strong> (JAX&#x27;s kernel language for TPU VMEM and SparseCore DMA pipelining).</li>
+</ul>
+<p>However, the broader AI ecosystem standardized around <strong>PyTorch</strong>, which is inherently <strong>stateful and object-oriented</strong>. In PyTorch, models are stateful <code>nn.Module</code> classes that hold mutable parameter buffers (<code>self.weight</code>) and frequently mutate tensors in place (such as updating KV-cache slices or indexing dynamic bounding boxes). Bridging stateful PyTorch to stateless XLA required rethinking how PyTorch unpacks operations under the hood.</p>
+<h3>Deconstructing the PyTorch operator funnel: From 2,000 Python APIs to 250 Core ATen primitives</h3>
+<p>When a developer writes high-level PyTorch code, that call passes through a 4-layer software funnel before reaching physical silicon.</p>
+<hr>
+<h3>Figure 1: The PyTorch 2.x operator funnel from 2,000+ Python APIs to 250 Core ATen primitives and StableHLO</h3>
+<p><figure><img src="https://engineerbharath12.github.io/BRs-AI-Infra-Playbook/Accelerator-Diversity/01-pytorch-on-tpu-evolution-torchtpu/fig1_pytorch_aten_funnel.png" alt="PyTorch 2.x to Cloud TPU Compiler Funnel"><figcaption>PyTorch 2.x to Cloud TPU Compiler Funnel</figcaption></figure></p>
+<p><em>Credit &amp; Source: System architecture synthesis based on PyTorch 2.x (<code>PrimTorch</code> / <code>AOTAutograd</code>) and Google Cloud TorchTPU compiler pipelines.</em></p>
+<hr>
+<p>Each layer in Figure 1 reduces operator complexity by an order of magnitude:</p>
+<ol>
+<li><strong>Layer 1 — PyTorch Python frontend (~2,000+ APIs)</strong>: User-facing classes and functions developers write daily, such as <code>torch.nn.Linear</code>, <code>F.layer_norm</code>, and <code>F.softmax</code>, which handle Python argument parsing, broadcasting rules, and object state.</li>
+<li><strong>Layer 2 — Full ATen C++ engine (~1,500 operators)</strong>: Python delegates every frontend call to <strong>ATen</strong> (&quot;A Tensor Library&quot;), PyTorch&#x27;s core C++ math library containing over 1,500 operators, including composite ops (<code>aten::layer_norm</code>, <code>aten::addmm</code>) and in-place variants (<code>aten::add_</code>).</li>
+<li><strong>Layer 3 — PrimTorch Core ATen subset (~250 atomic primitives)</strong>: Prior to PyTorch 2.0, any hardware vendor building a custom accelerator backend had to implement C++ kernels for over 1,500 separate ATen operators. In PyTorch 2.0, <strong>PrimTorch</strong> (inside <code>AOTAutograd</code>) proved that ~1,250 composite ATen operators decompose mathematically into a closed set of <strong>~250 irreducible Core ATen primitives</strong> (<code>add</code>, <code>mul</code>, <code>mm</code>, <code>amax</code>, <code>exp</code>, <code>sum</code>, <code>div</code>, <code>reshape</code>).</li>
+<li><strong>Layer 4 — StableHLO and XLA lowering</strong>: Once a model graph is expressed in those ~250 Core ATen primitives, a compiler backend only needs a one-time lowering table into <strong>StableHLO</strong>, which <strong>XLA</strong> compiles into Low-Level Operations (<strong>LLO</strong>) for the TPU MXU and VPU.</li>
+</ol>
+<p>To see this decomposition in action, consider a single Python call to <code>torch.softmax(x, dim=-1)</code>. When traced by <code>torch.compile</code>, PyTorch&#x27;s <code>AOTAutograd</code> automatically expands that single call into 5 atomic Core ATen primitives:</p>
+<pre><code># User writes 1 high-level PyTorch call:
+y = torch.softmax(x, dim=-1)
+
+# AOTAutograd / PrimTorch decomposes it into 5 Core ATen primitives:
+max_val = torch.ops.aten.amax.default(x, [-1], keepdim=True)  # 1. Row maximum
+shifted = torch.ops.aten.sub.Tensor(x, max_val)                # 2. Subtract max
+exps    = torch.ops.aten.exp.default(shifted)                  # 3. Exponentiate
+sum_exp = torch.ops.aten.sum.dim_IntList(exps, [-1], True)     # 4. Row sum
+y       = torch.ops.aten.div.Tensor(exps, sum_exp)             # 5. Normalize</code></pre>
+<blockquote><strong>Key Compiler Insight:</strong> Because XLA receives all 5 Core ATen primitives inside a single StableHLO graph, the XLA compiler fuses them right back into a single pass over on-chip VMEM—never writing <code>max_val</code>, <code>shifted</code>, or <code>exps</code> out to off-chip HBM.</blockquote>
+<hr>
+<h2>Section 2: The three generations of running PyTorch on Cloud TPUs</h2>
+<p>Over the past several years, Google and the open-source PyTorch community (including maintainers of <strong>vLLM</strong> and <strong>SGLang</strong>, alongside ecosystem partners highlighted in SemiAnalysis&#x27;s <em>InferenceX</em> architectural benchmark report) evolved PyTorch support on TPUs through three distinct stages.</p>
+<hr>
+<h3>Figure 2: Architectural evolution of PyTorch on Cloud TPUs — PyTorch/XLA vs. TorchAX vs. native TorchTPU</h3>
+<p><figure><img src="https://engineerbharath12.github.io/BRs-AI-Infra-Playbook/Accelerator-Diversity/01-pytorch-on-tpu-evolution-torchtpu/fig2_tpu_framework_evolution.png" alt="Three Generations of PyTorch Execution on Google Cloud TPUs"><figcaption>Three Generations of PyTorch Execution on Google Cloud TPUs</figcaption></figure></p>
+<p><em>Credit &amp; Source: Architectural synthesis adapted from SemiAnalysis (&quot;TPU Inference Externalization Full Steam Ahead - InferenceX&quot;), Google Cloud TPU Engineering, and PyTorch <code>PrivateUse1</code> documentation.</em></p>
+<hr>
+<h3>Generation 1: PyTorch/XLA and the &quot;lazy evaluation&quot; compilation trap</h3>
+<p>The first generation, <strong>PyTorch/XLA</strong>, predated PyTorch 2.0&#x27;s <code>TorchDynamo</code> and PrimTorch compiler stack. Because PyTorch 1.x lacked a clean way to capture whole graphs from eager Python code, PyTorch/XLA introduced <strong>Lazy Tensors</strong> (<code>device=&quot;xla&quot;</code>):</p>
+<ul>
+<li><strong>How it worked</strong>: When Python code ran <code>c = a + b</code>, nothing executed immediately on the TPU. Instead, PyTorch/XLA recorded the operation into a background Intermediate Representation (<strong>IR</strong>) directed acyclic graph (<strong>DAG</strong>) until execution hit an explicit synchronization barrier (<code>xm.mark_step()</code> or <code>.cpu()</code>), at which point the accumulated DAG was sent to XLA for compilation.</li>
+<li><strong>Why it struggled in production</strong>:</li>
+</ul>
+<ol>
+<li><strong>Dynamic shape recompilation stalls</strong>: Whenever an input tensor shape changed (such as varying prompt lengths in LLM serving or varying object counts in vision pipelines), the lazy IR graph hash changed, triggering a blocking XLA recompilation that could stall execution for minutes.</li>
+<li><strong>Broken interactive debugging</strong>: Because operations were recorded lazily rather than executed eagerly, placing a standard Python <code>print(tensor)</code> or <code>pdb</code> breakpoint in the middle of a model either forced a premature graph split or failed to reflect runtime state.</li>
+</ol>
+<h3>Generation 2: TorchAX (<code>tpu-inference</code>) and the JAX translation middleman</h3>
+<p>When generative AI serving engines like <strong>vLLM</strong> and <strong>SGLang</strong> surged in adoption between 2023 and 2025, Google already possessed mature TPU inference primitives—such as TPU PagedAttention, multi-host ICI mesh collectives, and custom Pallas kernels—written in <strong>JAX</strong>. Meanwhile, PyTorch 2.0&#x27;s out-of-tree C++ compiler extensions (<code>PrivateUse1</code> and dynamic-shape <code>TorchDynamo</code>) were still maturing.</p>
+<p>To bring PyTorch models onto TPUs quickly while reusing mature JAX kernels, Google built <strong>TorchAX</strong> (used in vLLM&#x27;s <code>tpu-inference</code> backend):</p>
+<ul>
+<li><strong>How it worked</strong>:</li>
+</ul>
+<ol>
+<li>A <code>torchax.tensor.Tensor</code> looked like a PyTorch tensor to Python code, but wrapped an underlying <code>jax.Array</code>.</li>
+<li>Whenever a PyTorch model invoked an operation, TorchAX intercepted the call at the <strong>high-level ~1,500 ATen operator layer</strong> using Python&#x27;s <code>__torch_dispatch__</code> mechanism <em>before</em> PrimTorch decomposition.</li>
+<li>TorchAX translated each intercepted ATen call into equivalent <code>jax.numpy</code> or <code>jax.lax</code> functions on the fly, while functionalizing stateful PyTorch <code>nn.Module</code> weights and KV caches into explicit stateless inputs so <code>@jax.jit</code> could compile the step.</li>
+</ol>
+<ul>
+<li><strong>Why TorchAX hit a scaling ceiling</strong>:</li>
+</ul>
+<ol>
+<li><strong>The ~1,500-operator translation treadmill</strong>: Because TorchAX intercepted operations at the un-decomposed ATen layer, engineers had to manually maintain a Python lookup dictionary mapping hundreds of ATen ops to JAX equivalents. Whenever a new Hugging Face model architecture used an unmapped ATen op or an in-place view mutation, execution failed until that translation rule was added manually.</li>
+<li><strong>Framework boundary friction</strong>: Serving engines (vLLM, SGLang) had to bypass their native <code>torch.compile</code> pipelines and maintain custom JAX-wrapping shims (or, in the case of SGLang-JAX, an entirely separate JAX runtime) to bridge stateful PyTorch schedulers with stateless <code>jax.jit</code> execution.</li>
+</ol>
+<h3>Generation 3: Native TorchTPU (<code>torch_tpu</code>) via PyTorch <code>PrivateUse1</code> and PrimTorch</h3>
+<p>Once PyTorch 2.4+ stabilized out-of-tree C++ device registration (<code>PrivateUse1</code>), automatic dynamic shapes, and PrimTorch decompositions, Google collaborated with the PyTorch, vLLM, and SGLang communities to build <strong>TorchTPU</strong> (<code>torch_tpu</code>)—moving the integration boundary directly into PyTorch&#x27;s native C++ core:</p>
+<ul>
+<li><strong>Native <code>torch.Tensor</code> via <code>PrivateUse1</code> (<code>device=&quot;tpu&quot;</code>)</strong>: TorchTPU registers <code>tpu</code> as a first-class C++ device inside PyTorch&#x27;s native dispatcher (<code>x = tensor.to(&quot;tpu&quot;)</code>). There is no <code>jax.Array</code> wrapper and no Python <code>__torch_dispatch__</code> translation shim.</li>
+<li><strong>True eager mode + <code>torch.compile(backend=&quot;tpu&quot;)</code></strong>: Developers can run standard PyTorch code line-by-line in eager mode (<code>PJRT_DEVICE=TPU</code>) for instant bring-up, <code>print()</code> inspection, and unit testing. For production throughput, wrapping the model or step function in <code>torch.compile(..., backend=&quot;tpu&quot;)</code> captures the graph via <code>TorchDynamo</code> and <code>AOTAutograd</code>, decomposes all high-level PyTorch operators down to the closed set of <strong>~250 Core ATen primitives</strong>, and lowers them directly into StableHLO and XLA.</li>
+<li><strong>Automatic Day-0 support for new PyTorch models</strong>: Because PyTorch&#x27;s own upstream PrimTorch engine decomposes any new composite PyTorch operator into the ~250 Core ATen primitives—and TorchTPU natively lowers those ~250 primitives to StableHLO—new PyTorch layers and model architectures work out of the box without manual JAX translation tables.</li>
+<li><strong>Direct Pallas kernel interop</strong>: Removing the TorchAX translation layer does <strong>not</strong> mean losing hand-tuned TPU kernels. TorchTPU allows native PyTorch graphs to invoke custom <strong>Pallas</strong> and <strong>SparseCore</strong> kernels (such as SplashAttention, PagedAttention, and ragged GroupedGEMM MoE kernels) directly as custom ops inside the StableHLO graph.</li>
+</ul>
+<p>The table below summarizes the architectural trade-offs across native JAX and the three generations of PyTorch on Cloud TPUs:</p>
+<pre><code>+-----------------------------------+----------------------------+------------------------------------------+----------------------------------------------+------------------------------------------------+
+| Architectural dimension           | Native JAX (jax.jit)       | Gen 1: PyTorch/XLA (LazyTensor)          | Gen 2: TorchAX (tpu-inference)               | Gen 3: Native TorchTPU (torch_tpu)             |
++===================================+============================+==========================================+==============================================+================================================+
+| Underlying tensor object          | Stateless jax.Array        | Lazy XLA IR wrapper tensor               | torchax.tensor.Tensor wrapping jax.Array     | Native C++ torch.Tensor (device=&quot;tpu&quot;)         |
+| Operator interception layer       | Native jax.lax primitives  | C++ Lazy IR recorder (xm.mark_step)      | Python __torch_dispatch__ on ~1,500 ATen ops | C++ PrivateUse1 + ~250 Core ATen ops           |
+| Day-0 support for new PyTorch ops | Manual rewrite in JAX      | Partial (unlowered ops fall back to CPU) | Breaks if op is missing from JAX lookup dict | Automatic via PrimTorch (~250 ops)             |
+| Line-by-line eager debugging      | Yes (before @jax.jit)      | No (lazy graph delays execution)         | Limited by JAX functionalization shims       | Full native PyTorch eager mode                 |
+| Production compiler path          | @jax.jit → StableHLO → XLA | Monolithic lazy DAG → XLA                | Bypasses torch.compile; uses @jax.jit        | torch.compile(backend=&quot;tpu&quot;) → StableHLO → XLA |
+| Custom TPU kernels (Pallas)       | Native first-class         | Limited C++ XLA custom calls             | Supported via underlying JAX runtime         | Direct Pallas &amp; SparseCore invocation          |
++-----------------------------------+----------------------------+------------------------------------------+----------------------------------------------+------------------------------------------------+</code></pre>
+<hr>
+<h2>Section 3: What TorchTPU solves automatically vs. what still requires engineering</h2>
+<p>Understanding the PrimTorch funnel in Figure 1 clarifies the exact engineering expectation when porting an existing GPU-first PyTorch workload to Cloud TPUs with TorchTPU.</p>
+<h3>What works out of the box (90%–95% of a PyTorch codebase)</h3>
+<p>Any code built from standard PyTorch operations—convolutions, linear projections, normalization layers, activation functions, loss functions, tensor indexing, and standard attention math—decomposes automatically into the ~250 Core ATen primitives. Model definitions (<code>model.py</code>) and pre-trained weight checkpoints (<code>.safetensors</code> or <code>.pt</code>, which store raw floating-point arrays mapped to layer names) load directly onto <code>device=&quot;tpu&quot;</code> with zero JAX rewrites.</p>
+<h3>Where targeted hardware engineering is still required (the 5%–10% boundary)</h3>
+<blockquote><strong>Portability Rule of Thumb:</strong> TorchTPU eliminates the <em>framework</em> translation tax across PyTorch and XLA, leaving only the 5%–10% of code that invokes compiled CUDA C++ extensions, dynamic unbucketed shapes, or fixed-function GPU silicon blocks.</blockquote>
+<p>Three specific scenarios cross that hardware boundary in production pipelines:</p>
+<ol>
+<li><strong>Custom C++/CUDA extensions</strong>: If a pipeline invokes a compiled C++/CUDA extension (such as <code>torchvision.ops.roi_align</code>, custom CUDA deformable convolutions, or inline Triton kernels), PrimTorch cannot decompose compiled CUDA C++ into Core ATen primitives. To run on TPU without falling back to the host CPU over PCIe, you either express that operator in standard PyTorch tensor operations (so <code>torch.compile(backend=&quot;tpu&quot;)</code> lowers and fuses it automatically into XLA) or invoke a TPU Pallas kernel.</li>
+<li><strong>XLA static shape and VMEM fusion awareness</strong>: Because XLA compiles static memory layouts for the TPU&#x27;s MXU and 16–32 MB VMEM, workloads with highly variable batch sizes (such as dynamic object counts per frame) benefit from pre-warming a small ladder of <strong>static batch buckets</strong> (for example, <code>32, 64, 96, 128</code>) at startup to eliminate runtime recompilation.</li>
+<li><strong>Fixed-function GPU hardware blocks (NVDEC media decoders)</strong>: Modern GPUs (such as <strong>Google Cloud G4</strong> instances with <strong>NVIDIA RTX PRO 6000 Blackwell</strong> GPUs) include dedicated fixed-function silicon blocks (<strong>NVDEC</strong>) for hardware video bitstream decoding via TorchCodec or FFmpeg. Cloud TPUs dedicate 100% of their die area to matrix (MXU), vector (VPU), and sparse (SparseCore) compute, meaning they contain <strong>zero hardware video decode engines (0 NVDEC)</strong>.</li>
+</ol>
+<hr>
+<h2>Conclusion and call to action</h2>
+<p>The shift from PyTorch/XLA and TorchAX to native <strong>TorchTPU (<code>torch_tpu</code>)</strong> eliminates the historical framework tax of running PyTorch on Google Cloud TPUs. By combining PyTorch 2.x&#x27;s <code>PrivateUse1</code> C++ device architecture with PrimTorch&#x27;s ~250 Core ATen decomposition into StableHLO and XLA, TorchTPU allows engineering teams to keep their models, checkpoints, and serving runtimes in native PyTorch while unlocking TPU MXU and VMEM efficiency across training and inference.</p>
+<p>In <strong>Part 2 of this series</strong>, we put TorchTPU to the test on a production, GPU-first high-definition (1080p) video analytics pipeline that relies on NVIDIA hardware NVDEC engines and <code>torchvision</code> CUDA spatial ops:</p>
+<ul>
+<li><strong>Continue to Part 2</strong>: Read <a href="../02-torchtpu-video-preprocessing-accelerator-diversity/">Running GPU-first PyTorch video pipelines on TorchTPU</a> to see how a split CPU-TPU video decode architecture cuts PCIe bandwidth by <strong>75%–87.5%</strong>, boosts throughput by <strong>+122%</strong> over CPU preprocessing, and enables a single common codebase across Google Cloud G4 GPUs and Cloud TPUs.</li>
+<li><strong>Further reading</strong>: Explore the <a href="https://cloud.google.com/tpu/docs">Google Cloud TPU documentation</a> and the <a href="https://pytorch.org/docs/stable/torch.compiler.html">PyTorch <code>torch.compile</code> and Core ATen specification</a>.</li>
+</ul>
+</article></body></html>
