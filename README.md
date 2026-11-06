@@ -15,7 +15,7 @@ Every article in this series is grounded in empirical customer deployments and p
 | :--- | :--- | :-: |
 | **[Google Cloud TPU Series](./TPU/)** | Cloud TPU supercluster architecture, Pathways elasticity, Pallas kernels, and high-throughput serving | **4** |
 | **[NVIDIA GPU Series](./GPU/)** | Multi-GPU training MFU, NVLink/PCIe P2P collectives, hardware media pipelines, and low-latency inference | **4** |
-| **[Accelerator Diversity Series](./Accelerator-Diversity/)** | Democratizing ML frameworks across training and inference (`TorchTPU`, open compilers, and portable runtimes) | **1** |
+| **[Accelerator Diversity Series](./Accelerator-Diversity/)** | Democratizing ML frameworks across training and inference (`TorchTPU`, open compilers, and portable runtimes) | **2** |
 
 ---
 
@@ -37,7 +37,8 @@ BRs-AI-Infra-Playbook/
 │   └── 04-70b-model-training-mfu-optimization/
 └── Accelerator-Diversity/                           # Framework Portability
     ├── README.md
-    └── 01-pytorch-on-tpu-evolution-torchtpu/
+    ├── 01-pytorch-on-tpu-evolution-torchtpu/
+    └── 02-torchtpu-video-preprocessing-accelerator-diversity/
 ```
 
 ---
@@ -69,3 +70,4 @@ BRs-AI-Infra-Playbook/
 | # | Article Title | Description |
 | :-: | :--- | :--- |
 | **01** | **[The evolution of PyTorch on Cloud TPUs: From JAX and PyTorch/XLA to TorchAX and native TorchTPU](./Accelerator-Diversity/01-pytorch-on-tpu-evolution-torchtpu/)** | Traces how PyTorch execution on Cloud TPUs evolved from lazy XLA graph tracing and runtime JAX shims to native TorchTPU lowering via PrimTorch's ~250 Core ATen primitives. |
+| **02** | **[Running GPU-first PyTorch video pipelines on TorchTPU: Split CPU-TPU decoding and accelerator diversity](./Accelerator-Diversity/02-torchtpu-video-preprocessing-accelerator-diversity/)** | Bridges the absence of hardware NVDEC engines on Cloud TPUs using compact uint8 YUV420p split decoding and XLA MXU preprocessing inside a 90/10 unified GPU/TPU codebase. |
